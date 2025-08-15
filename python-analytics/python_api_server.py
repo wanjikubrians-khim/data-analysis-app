@@ -55,8 +55,14 @@ def upload_and_analyze():
         if file.filename == '':
             return jsonify({'error': 'No file selected'}), 400
         
-        if not file.filename.lower().endswith('.csv'):
-            return jsonify({'error': 'Only CSV files are supported'}), 400
+        # Check if file has a supported extension
+        supported_extensions = ['.csv', '.xlsx', '.xls', '.json', '.tsv', '.txt', '.parquet', '.pkl', '.pickle', '.feather', '.h5', '.hdf5', '.orc']
+        file_extension = Path(file.filename).suffix.lower()
+        if file_extension not in supported_extensions:
+            return jsonify({
+                'error': f'Unsupported file format: {file_extension}',
+                'supported_formats': supported_extensions
+            }), 400
         
         # Save uploaded file
         file_id = str(uuid.uuid4())
@@ -72,12 +78,15 @@ def upload_and_analyze():
         # Perform basic analysis
         basic_stats = analyzer.basic_statistics()
         
+        # Make results JSON serializable
+        serializable_stats = analyzer._make_json_serializable(basic_stats)
+        
         # Clean up file
         os.remove(file_path)
         
         return jsonify({
             'file_info': load_result,
-            'analysis': basic_stats,
+            'analysis': serializable_stats,
             'analysis_type': 'basic_statistics'
         })
         
@@ -104,12 +113,15 @@ def correlation_analysis():
         analyzer.load_data(file_path)
         correlation_result = analyzer.correlation_analysis()
         
+        # Make results JSON serializable
+        serializable_result = analyzer._make_json_serializable(correlation_result)
+        
         # Clean up file
         os.remove(file_path)
         
         return jsonify({
             'analysis_type': 'correlation',
-            'result': correlation_result
+            'result': serializable_result
         })
         
     except Exception as e:
@@ -143,13 +155,16 @@ def machine_learning_analysis():
         
         ml_result = analyzer.machine_learning_analysis(target_column)
         
+        # Make results JSON serializable
+        serializable_result = analyzer._make_json_serializable(ml_result)
+        
         # Clean up file
         os.remove(file_path)
         
         return jsonify({
             'analysis_type': 'machine_learning',
             'target_column': target_column,
-            'result': ml_result
+            'result': serializable_result
         })
         
     except Exception as e:
@@ -180,13 +195,16 @@ def clustering_analysis():
         
         clustering_result = analyzer.clustering_analysis(n_clusters)
         
+        # Make results JSON serializable
+        serializable_result = analyzer._make_json_serializable(clustering_result)
+        
         # Clean up file
         os.remove(file_path)
         
         return jsonify({
             'analysis_type': 'clustering',
             'n_clusters': n_clusters,
-            'result': clustering_result
+            'result': serializable_result
         })
         
     except Exception as e:
@@ -275,12 +293,15 @@ def comprehensive_analysis():
         results['visualizations'] = analyzer.generate_visualizations(viz_dir)
         results['visualization_id'] = file_id
         
+        # Make results JSON serializable
+        serializable_results = analyzer._make_json_serializable(results)
+        
         # Clean up uploaded file
         os.remove(file_path)
         
         return jsonify({
             'analysis_type': 'comprehensive',
-            'results': results
+            'results': serializable_results
         })
         
     except Exception as e:
@@ -336,6 +357,86 @@ def get_available_models():
         ]
     })
 
+@app.route('/api/formats/supported', methods=['GET'])
+def get_supported_formats():
+    """Get list of supported file formats"""
+    return jsonify({
+        'supported_formats': [
+            {
+                'extension': '.csv',
+                'description': 'Comma-separated values',
+                'mime_types': ['text/csv', 'application/csv']
+            },
+            {
+                'extension': '.xlsx',
+                'description': 'Excel 2007+ format',
+                'mime_types': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+            },
+            {
+                'extension': '.xls',
+                'description': 'Legacy Excel format',
+                'mime_types': ['application/vnd.ms-excel']
+            },
+            {
+                'extension': '.json',
+                'description': 'JavaScript Object Notation',
+                'mime_types': ['application/json']
+            },
+            {
+                'extension': '.tsv',
+                'description': 'Tab-separated values',
+                'mime_types': ['text/tab-separated-values']
+            },
+            {
+                'extension': '.txt',
+                'description': 'Plain text (tab-delimited)',
+                'mime_types': ['text/plain']
+            },
+            {
+                'extension': '.parquet',
+                'description': 'Apache Parquet format',
+                'mime_types': ['application/octet-stream']
+            },
+            {
+                'extension': '.pkl',
+                'description': 'Python pickle format',
+                'mime_types': ['application/octet-stream']
+            },
+            {
+                'extension': '.pickle',
+                'description': 'Python pickle format',
+                'mime_types': ['application/octet-stream']
+            },
+            {
+                'extension': '.feather',
+                'description': 'Apache Arrow Feather format',
+                'mime_types': ['application/octet-stream']
+            },
+            {
+                'extension': '.h5',
+                'description': 'HDF5 format',
+                'mime_types': ['application/octet-stream']
+            },
+            {
+                'extension': '.hdf5',
+                'description': 'HDF5 format',
+                'mime_types': ['application/octet-stream']
+            },
+            {
+                'extension': '.orc',
+                'description': 'Apache ORC format',
+                'mime_types': ['application/octet-stream']
+            }
+        ],
+        'notes': [
+            'CSV files support multiple encodings (UTF-8, Latin-1, CP1252, ISO-8859-1)',
+            'Excel files (.xlsx, .xls) read the first worksheet by default',
+            'JSON files support both array of objects and nested object structures',
+            'TSV/TXT files are treated as tab-delimited',
+            'Some formats may require additional Python packages (openpyxl, pyarrow, etc.)'
+        ]
+    })
+
 @app.route('/api/analyze/outliers', methods=['POST'])
 def outlier_detection():
     """Perform comprehensive outlier detection"""
@@ -359,12 +460,15 @@ def outlier_detection():
         
         outlier_result = analyzer.outlier_detection()
         
+        # Make results JSON serializable
+        serializable_result = analyzer._make_json_serializable(outlier_result)
+        
         # Clean up file
         os.remove(file_path)
         
         return jsonify({
             'analysis_type': 'outlier_detection',
-            'result': outlier_result
+            'result': serializable_result
         })
         
     except Exception as e:
@@ -394,12 +498,15 @@ def data_quality_assessment():
         
         quality_result = analyzer.data_quality_assessment()
         
+        # Make results JSON serializable
+        serializable_result = analyzer._make_json_serializable(quality_result)
+        
         # Clean up file
         os.remove(file_path)
         
         return jsonify({
             'analysis_type': 'data_quality',
-            'result': quality_result
+            'result': serializable_result
         })
         
     except Exception as e:
@@ -429,12 +536,15 @@ def statistical_tests():
         
         tests_result = analyzer.statistical_tests()
         
+        # Make results JSON serializable
+        serializable_result = analyzer._make_json_serializable(tests_result)
+        
         # Clean up file
         os.remove(file_path)
         
         return jsonify({
             'analysis_type': 'statistical_tests',
-            'result': tests_result
+            'result': serializable_result
         })
         
     except Exception as e:
@@ -469,6 +579,9 @@ def time_series_analysis():
         
         ts_result = analyzer.time_series_analysis(date_column, value_column)
         
+        # Make results JSON serializable
+        serializable_result = analyzer._make_json_serializable(ts_result)
+        
         # Clean up file
         os.remove(file_path)
         
@@ -476,7 +589,7 @@ def time_series_analysis():
             'analysis_type': 'time_series',
             'date_column': date_column,
             'value_column': value_column,
-            'result': ts_result
+            'result': serializable_result
         })
         
     except Exception as e:
@@ -1283,8 +1396,20 @@ if __name__ == '__main__':
     print("🛠️ Utility Endpoints:")
     print("   GET  /api/r/health - Check R installation")
     print("   GET  /api/models/available - Available models")
+    print("   GET  /api/formats/supported - Supported file formats")
     print("   GET  /api/sample/generate - Generate sample data")
     print("   GET  /health - Health check")
+    print()
+    print("📁 Supported File Formats:")
+    print("   • CSV (.csv) - Comma-separated values")
+    print("   • Excel (.xlsx, .xls) - Microsoft Excel files")
+    print("   • JSON (.json) - JavaScript Object Notation")
+    print("   • TSV/TXT (.tsv, .txt) - Tab-separated values")
+    print("   • Parquet (.parquet) - Apache Parquet format")
+    print("   • Pickle (.pkl, .pickle) - Python serialized data")
+    print("   • Feather (.feather) - Apache Arrow format")
+    print("   • HDF5 (.h5, .hdf5) - Hierarchical Data Format")
+    print("   • ORC (.orc) - Apache ORC format")
     print()
     print("🚀 Server starting on http://localhost:5000")
     print("📊 Complete analytics with markdown reports, plots, and tables!")

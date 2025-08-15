@@ -1,125 +1,502 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Analysis App</title>
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>🚀 Advanced Multi-Engine Data Analysis Platform</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            transition: all 0.15s ease-in-out;
+        }
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        .analysis-type-card {
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .analysis-type-card.selected {
+            border-color: #007bff;
+            background-color: #f8f9ff;
+        }
+        .file-upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 0.375rem;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.15s ease-in-out;
+        }
+        .file-upload-area:hover {
+            border-color: #007bff;
+            background-color: #f8f9ff;
+        }
+        .results-section {
+            display: none;
+        }
+        .loading-spinner {
+            display: none;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-healthy { background-color: #28a745; }
+        .status-warning { background-color: #ffc107; }
+        .status-error { background-color: #dc3545; }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <!-- Hero Section -->
+    <div class="hero-section">
         <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-chart-line me-2"></i>
-                Data Analysis App
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/upload">Upload Data</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/python-analytics">Python Analytics</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/sample-data">Sample Analysis</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container mt-5">
-        <div class="hero-section text-center mb-5">
-            <h1 class="display-4 mb-3">Welcome to Data Analysis App</h1>
-            <p class="lead">Analyze your data with powerful statistical tools and visualizations</p>
-            <div class="row mt-4">
-                <div class="col-md-4">
-                    <div class="feature-card">
-                        <i class="fas fa-upload fa-3x text-primary mb-3"></i>
-                        <h3>Upload Data</h3>
-                        <p>Upload your CSV files and get instant analysis</p>
-                        <a href="/upload" class="btn btn-primary">Get Started</a>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="feature-card">
-                        <i class="fas fa-chart-bar fa-3x text-success mb-3"></i>
-                        <h3>Statistical Analysis</h3>
-                        <p>Get comprehensive statistics including mean, median, and standard deviation</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="feature-card">
-                        <i class="fab fa-python fa-3x text-warning mb-3"></i>
-                        <h3>Python Analytics</h3>
-                        <p>Advanced machine learning and statistical analysis powered by Python</p>
-                        <a href="/python-analytics" class="btn btn-warning">Try Python ML</a>
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h1 class="display-4 fw-bold mb-4">
+                        <i class="fas fa-chart-line me-3"></i>
+                        Advanced Data Analysis Platform
+                    </h1>
+                    <p class="lead mb-4">
+                        Powerful multi-engine analytics combining Java, Python, and machine learning
+                        for comprehensive data insights and visualizations.
+                    </p>
+                    <div id="system-status" class="mb-3">
+                        <span class="status-indicator status-warning"></span>
+                        <span>Checking system status...</span>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="row mt-5">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="fas fa-file-csv me-2"></i>
-                            Upload Your Data
-                        </h5>
-                        <p class="card-text">
-                            Upload CSV files to get detailed statistical analysis and visualizations.
-                            Our system supports various data types and provides comprehensive insights.
-                        </p>
-                        <a href="/upload" class="btn btn-outline-primary">
-                            <i class="fas fa-upload me-2"></i>
-                            Upload Now
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="fas fa-database me-2"></i>
-                            Try Sample Data
-                        </h5>
-                        <p class="card-text">
-                            Explore the application with our sample dataset. See how the analysis works
-                            with employee data including sales figures and demographics.
-                        </p>
-                        <a href="/sample-data" class="btn btn-outline-success">
-                            <i class="fas fa-play me-2"></i>
-                            View Sample
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div th:if="${error}" class="alert alert-danger mt-4" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            <span th:text="${error}"></span>
         </div>
     </div>
 
-    <footer class="bg-dark text-light mt-5 py-4">
-        <div class="container text-center">
-            <p>&copy; 2024 Data Analysis App. Built with Java Spring Boot.</p>
+    <!-- Main Content -->
+    <div class="container my-5">
+        <!-- File Upload Section -->
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title text-center mb-4">
+                            <i class="fas fa-upload me-2"></i>
+                            Upload Your Data
+                        </h3>
+                        
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <h5>Drag & Drop Your Data File Here</h5>
+                            <p class="text-muted">Supports CSV, Excel, JSON, TSV, Parquet, and more</p>
+                            <input type="file" id="fileInput" 
+                                   accept=".csv,.xlsx,.xls,.json,.tsv,.txt,.parquet,.pkl,.pickle,.feather,.h5,.hdf5,.orc" 
+                                   style="display: none;">
+                            <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-folder-open me-2"></i>Browse Files
+                            </button>
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <strong>Supported formats:</strong>
+                                    <span class="badge bg-light text-dark me-1">CSV</span>
+                                    <span class="badge bg-light text-dark me-1">Excel</span>
+                                    <span class="badge bg-light text-dark me-1">JSON</span>
+                                    <span class="badge bg-light text-dark me-1">TSV</span>
+                                    <span class="badge bg-light text-dark me-1">Parquet</span>
+                                    <span class="badge bg-light text-dark me-1">Pickle</span>
+                                    <span class="badge bg-light text-dark me-1">Feather</span>
+                                    <span class="badge bg-light text-dark me-1">HDF5</span>
+                                    <span class="badge bg-light text-dark me-1">ORC</span>
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div id="selectedFile" class="mt-3" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="fas fa-file me-2" id="fileIcon"></i>
+                                <span id="fileName"></span>
+                                <button type="button" class="btn-close float-end" onclick="clearFile()"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script th:src="@{/js/app.js}"></script>
+        <!-- Analysis Type Selection -->
+        <div class="row mb-5">
+            <div class="col-lg-10 mx-auto">
+                <h3 class="text-center mb-4">
+                    <i class="fas fa-cogs me-2"></i>
+                    Choose Analysis Type
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card analysis-type-card" data-type="basic">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-bar fa-2x text-primary mb-3"></i>
+                                <h5>Basic Statistics</h5>
+                                <p class="text-muted">Descriptive statistics, data overview, and basic insights</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card analysis-type-card" data-type="comprehensive">
+                            <div class="card-body text-center">
+                                <i class="fas fa-brain fa-2x text-success mb-3"></i>
+                                <h5>Comprehensive Analysis</h5>
+                                <p class="text-muted">Full analysis with ML, statistics, and visualizations</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card analysis-type-card" data-type="machine_learning">
+                            <div class="card-body text-center">
+                                <i class="fas fa-robot fa-2x text-warning mb-3"></i>
+                                <h5>Machine Learning</h5>
+                                <p class="text-muted">Predictive modeling and advanced ML algorithms</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card analysis-type-card" data-type="clustering">
+                            <div class="card-body text-center">
+                                <i class="fas fa-project-diagram fa-2x text-info mb-3"></i>
+                                <h5>Clustering</h5>
+                                <p class="text-muted">Discover patterns and group similar data points</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card analysis-type-card" data-type="correlation">
+                            <div class="card-body text-center">
+                                <i class="fas fa-link fa-2x text-secondary mb-3"></i>
+                                <h5>Correlation Analysis</h5>
+                                <p class="text-muted">Explore relationships between variables</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card analysis-type-card" data-type="quality">
+                            <div class="card-body text-center">
+                                <i class="fas fa-shield-alt fa-2x text-danger mb-3"></i>
+                                <h5>Data Quality</h5>
+                                <p class="text-muted">Assess data quality, outliers, and missing values</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Parameters -->
+        <div class="row mb-5" id="parametersSection" style="display: none;">
+            <div class="col-lg-6 mx-auto">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Analysis Parameters</h5>
+                        <div class="mb-3">
+                            <label for="targetColumn" class="form-label">Target Column (for ML analysis)</label>
+                            <input type="text" class="form-control" id="targetColumn" 
+                                   placeholder="Enter column name for prediction">
+                            <div class="form-text">Leave empty for unsupervised analysis</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analyze Button -->
+        <div class="row mb-5">
+            <div class="col-lg-4 mx-auto text-center">
+                <button type="button" class="btn btn-primary btn-lg" id="analyzeBtn" disabled>
+                    <i class="fas fa-play me-2"></i>
+                    Start Analysis
+                </button>
+                
+                <div class="loading-spinner mt-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Analyzing your data...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="fas fa-chart-line me-2"></i>Analysis Results</h4>
+                        </div>
+                        <div class="card-body">
+                            <div id="resultsContent">
+                                <!-- Results will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let selectedFile = null;
+        let selectedAnalysisType = 'comprehensive';
+
+        // Check system status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSystemStatus();
+            initializeEventListeners();
+        });
+
+        function checkSystemStatus() {
+            fetch('/api/health')
+                .then(response => response.json())
+                .then(data => {
+                    const statusElement = document.getElementById('system-status');
+                    if (data.status === 'all systems operational') {
+                        statusElement.innerHTML = '<span class="status-indicator status-healthy"></span>All systems operational';
+                    } else {
+                        statusElement.innerHTML = '<span class="status-indicator status-warning"></span>' + data.status;
+                    }
+                })
+                .catch(error => {
+                    const statusElement = document.getElementById('system-status');
+                    statusElement.innerHTML = '<span class="status-indicator status-error"></span>System check failed';
+                });
+        }
+
+        function initializeEventListeners() {
+            // File upload
+            const fileInput = document.getElementById('fileInput');
+            const uploadArea = document.getElementById('fileUploadArea');
+
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#007bff';
+                uploadArea.style.backgroundColor = '#f8f9ff';
+            });
+            
+            uploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#dee2e6';
+                uploadArea.style.backgroundColor = '';
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#dee2e6';
+                uploadArea.style.backgroundColor = '';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    handleFileSelect({ target: { files: files } });
+                }
+            });
+
+            // Analysis type selection
+            document.querySelectorAll('.analysis-type-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    document.querySelectorAll('.analysis-type-card').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedAnalysisType = this.dataset.type;
+                    
+                    // Show parameters section for ML analysis
+                    const parametersSection = document.getElementById('parametersSection');
+                    if (selectedAnalysisType === 'machine_learning') {
+                        parametersSection.style.display = 'block';
+                    } else {
+                        parametersSection.style.display = 'none';
+                    }
+                    
+                    updateAnalyzeButton();
+                });
+            });
+
+            // Analyze button
+            document.getElementById('analyzeBtn').addEventListener('click', startAnalysis);
+
+            // Select comprehensive analysis by default
+            document.querySelector('[data-type="comprehensive"]').click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('selectedFile').style.display = 'block';
+                updateAnalyzeButton();
+            }
+        }
+
+        function clearFile() {
+            selectedFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('selectedFile').style.display = 'none';
+            updateAnalyzeButton();
+        }
+
+        function updateAnalyzeButton() {
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            analyzeBtn.disabled = !selectedFile || !selectedAnalysisType;
+        }
+
+        function startAnalysis() {
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('analysisType', selectedAnalysisType);
+            
+            const targetColumn = document.getElementById('targetColumn').value;
+            if (targetColumn) {
+                formData.append('targetColumn', targetColumn);
+            }
+
+            // Show loading spinner
+            document.querySelector('.loading-spinner').style.display = 'block';
+            document.getElementById('analyzeBtn').disabled = true;
+            document.getElementById('resultsSection').style.display = 'none';
+
+            fetch('/api/analyze', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayResults(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                displayError('Analysis failed: ' + error.message);
+            })
+            .finally(() => {
+                document.querySelector('.loading-spinner').style.display = 'none';
+                document.getElementById('analyzeBtn').disabled = false;
+            });
+        }
+
+        function displayResults(data) {
+            const resultsContent = document.getElementById('resultsContent');
+            
+            if (data.error) {
+                displayError(data.error);
+                return;
+            }
+
+            let html = '<div class="row">';
+            
+            // Basic Statistics
+            if (data.basic_statistics) {
+                html += `
+                    <div class="col-md-6 mb-4">
+                        <h5><i class="fas fa-table me-2"></i>Basic Statistics</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                ${generateTableFromObject(data.basic_statistics)}
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Data Info
+            if (data.data_info) {
+                html += `
+                    <div class="col-md-6 mb-4">
+                        <h5><i class="fas fa-info-circle me-2"></i>Data Information</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                ${generateTableFromObject(data.data_info)}
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Machine Learning Results
+            if (data.machine_learning) {
+                html += `
+                    <div class="col-12 mb-4">
+                        <h5><i class="fas fa-brain me-2"></i>Machine Learning Results</h5>
+                        <div class="alert alert-info">
+                            <pre>${JSON.stringify(data.machine_learning, null, 2)}</pre>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Quality Assessment
+            if (data.quality_assessment) {
+                html += `
+                    <div class="col-12 mb-4">
+                        <h5><i class="fas fa-shield-alt me-2"></i>Data Quality Assessment</h5>
+                        <div class="alert alert-warning">
+                            <pre>${JSON.stringify(data.quality_assessment, null, 2)}</pre>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+
+            resultsContent.innerHTML = html;
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function displayError(errorMessage) {
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = `
+                <div class="alert alert-danger">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Analysis Error</h5>
+                    <p>${errorMessage}</p>
+                </div>
+            `;
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        function generateTableFromObject(obj) {
+            let html = '<tbody>';
+            for (const [key, value] of Object.entries(obj)) {
+                html += `<tr><td><strong>${key}</strong></td><td>${value}</td></tr>`;
+            }
+            html += '</tbody>';
+            return html;
+        }
+    </script>
 </body>
 </html>

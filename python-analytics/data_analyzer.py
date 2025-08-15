@@ -46,25 +46,174 @@ class DataAnalyzer:
         self.numeric_columns = []
         self.categorical_columns = []
         self.results = {}
+    
+    def _make_json_serializable(self, obj):
+        """Convert numpy/pandas objects to JSON serializable types"""
+        if isinstance(obj, dict):
+            return {key: self._make_json_serializable(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self._make_json_serializable(item) for item in obj]
+        elif isinstance(obj, tuple):
+            return [self._make_json_serializable(item) for item in obj]
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, (np.integer, np.int64, np.int32, np.int16, np.int8)):
+            return int(obj)
+        elif isinstance(obj, (np.floating, np.float64, np.float32, np.float16)):
+            return float(obj)
+        elif isinstance(obj, (np.bool_, bool)):
+            return bool(obj)
+        elif pd.isna(obj) or (hasattr(obj, 'isna') and obj.isna()):
+            return None
+        elif isinstance(obj, pd.Series):
+            return obj.tolist()
+        elif isinstance(obj, pd.DataFrame):
+            return obj.to_dict('records')
+        elif hasattr(obj, 'item'):  # numpy scalar types
+            return obj.item()
+        elif str(type(obj)).startswith('<class \'numpy.'):
+            # Catch any remaining numpy types
+            try:
+                return obj.item() if hasattr(obj, 'item') else str(obj)
+            except:
+                return str(obj)
+        else:
+            return obj
         
     def load_data(self, file_path: str) -> Dict[str, Any]:
-        """Load data from CSV file"""
+        """Load data from various file formats (CSV, Excel, JSON, TSV, etc.)"""
         try:
-            self.data = pd.read_csv(file_path)
+            file_extension = Path(file_path).suffix.lower()
+            
+            # Determine file type and load accordingly
+            if file_extension == '.csv':
+                # Try different encodings for CSV files
+                encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+                for encoding in encodings:
+                    try:
+                        self.data = pd.read_csv(file_path, encoding=encoding)
+                        break
+                    except UnicodeDecodeError:
+                        continue
+                else:
+                    # If all encodings fail, try with error handling
+                    self.data = pd.read_csv(file_path, encoding='utf-8', errors='replace')
+                    
+            elif file_extension in ['.xlsx', '.xls']:
+                # Excel files
+                try:
+                    # Try to read the first sheet
+                    self.data = pd.read_excel(file_path, engine='openpyxl' if file_extension == '.xlsx' else 'xlrd')
+                except ImportError:
+                    # Fallback if openpyxl is not available
+                    self.data = pd.read_excel(file_path)
+                    
+            elif file_extension == '.json':
+                # JSON files
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    json_data = json.load(f)
+                
+                if isinstance(json_data, list):
+                    self.data = pd.DataFrame(json_data)
+                elif isinstance(json_data, dict):
+                    # Handle different JSON structures
+                    if 'data' in json_data:
+                        self.data = pd.DataFrame(json_data['data'])
+                    else:
+                        # Try to create DataFrame from dict
+                        self.data = pd.DataFrame([json_data]) if not any(isinstance(v, list) for v in json_data.values()) else pd.DataFrame(json_data)
+                else:
+                    raise ValueError("JSON format not supported")
+                    
+            elif file_extension in ['.tsv', '.txt']:
+                # Tab-separated files
+                encodings = ['utf-8', 'latin-1', 'cp1252']
+                for encoding in encodings:
+                    try:
+                        self.data = pd.read_csv(file_path, sep='\t', encoding=encoding)
+                        break
+                    except UnicodeDecodeError:
+                        continue
+                else:
+                    self.data = pd.read_csv(file_path, sep='\t', encoding='utf-8', errors='replace')
+                    
+            elif file_extension == '.parquet':
+                # Parquet files
+                try:
+                    self.data = pd.read_parquet(file_path)
+                except ImportError:
+                    raise ImportError("pyarrow or fastparquet required for Parquet files")
+                    
+            elif file_extension in ['.pkl', '.pickle']:
+                # Pickle files
+                self.data = pd.read_pickle(file_path)
+                
+            elif file_extension == '.feather':
+                # Feather files
+                try:
+                    self.data = pd.read_feather(file_path)
+                except ImportError:
+                    raise ImportError("pyarrow required for Feather files")
+                    
+            elif file_extension == '.h5' or file_extension == '.hdf5':
+                # HDF5 files
+                try:
+                    # Try to read the first key
+                    with pd.HDFStore(file_path, 'r') as store:
+                        keys = store.keys()
+                        if keys:
+                            self.data = store[keys[0]]
+                        else:
+                            raise ValueError("No data found in HDF5 file")
+                except ImportError:
+                    raise ImportError("tables required for HDF5 files")
+                    
+            elif file_extension in ['.orc']:
+                # ORC files
+                try:
+                    self.data = pd.read_orc(file_path)
+                except ImportError:
+                    raise ImportError("pyarrow required for ORC files")
+                    
+            else:
+                # Default: try CSV with different separators
+                separators = [',', ';', '\t', '|']
+                for sep in separators:
+                    try:
+                        self.data = pd.read_csv(file_path, sep=sep, encoding='utf-8')
+                        # Check if we got meaningful columns
+                        if len(self.data.columns) > 1 or self.data.shape[0] > 1:
+                            break
+                    except:
+                        continue
+                else:
+                    raise ValueError(f"Unsupported file format: {file_extension}")
+            
+            # Validate data
+            if self.data is None or self.data.empty:
+                raise ValueError("No data could be loaded from the file")
+            
+            # Clean column names (remove special characters, spaces)
+            self.data.columns = [str(col).strip() for col in self.data.columns]
+            
             self._identify_column_types()
             
             return {
                 'success': True,
-                'message': f'Data loaded successfully. Shape: {self.data.shape}',
+                'message': f'Data loaded successfully from {file_extension} file. Shape: {self.data.shape}',
                 'shape': self.data.shape,
                 'columns': list(self.data.columns),
                 'numeric_columns': self.numeric_columns,
-                'categorical_columns': self.categorical_columns
+                'categorical_columns': self.categorical_columns,
+                'file_format': file_extension,
+                'data_types': {col: str(dtype) for col, dtype in self.data.dtypes.items()}
             }
+            
         except Exception as e:
             return {
                 'success': False,
-                'message': f'Error loading data: {str(e)}'
+                'message': f'Error loading data from {Path(file_path).suffix} file: {str(e)}',
+                'supported_formats': ['.csv', '.xlsx', '.xls', '.json', '.tsv', '.txt', '.parquet', '.pkl', '.pickle', '.feather', '.h5', '.hdf5', '.orc']
             }
     
     def _identify_column_types(self):
