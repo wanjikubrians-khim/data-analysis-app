@@ -10,6 +10,7 @@ import os
 import json
 import tempfile
 import uuid
+import subprocess
 from pathlib import Path
 import logging
 from data_analyzer import DataAnalyzer
@@ -481,6 +482,435 @@ def time_series_analysis():
         logger.error(f"Error in time series analysis: {str(e)}")
         return jsonify({'error': f'Time series analysis failed: {str(e)}'}), 500
 
+# R Analytics Integration Functions
+def check_r_installation():
+    """Check if R is installed and accessible"""
+    try:
+        result = subprocess.run(['R', '--version'], 
+                              capture_output=True, text=True, timeout=10)
+        return result.returncode == 0
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+
+def execute_r_script(csv_file_path, analysis_type, *args):
+    """Execute R analytics script and return JSON result"""
+    try:
+        # Get the R script path
+        r_script_path = os.path.join('..', 'r-analytics', 'data_analyzer.R')
+        
+        if not os.path.exists(r_script_path):
+            return {'error': 'R analytics script not found'}
+        
+        # Prepare R command
+        cmd = ['Rscript', r_script_path, csv_file_path, analysis_type] + list(args)
+        
+        # Execute R script
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        
+        if result.returncode != 0:
+            return {
+                'error': f'R script execution failed: {result.stderr}',
+                'stdout': result.stdout,
+                'stderr': result.stderr
+            }
+        
+        # Parse JSON output
+        try:
+            return json.loads(result.stdout)
+        except json.JSONDecodeError as e:
+            return {
+                'error': f'Failed to parse R output as JSON: {str(e)}',
+                'raw_output': result.stdout
+            }
+            
+    except subprocess.TimeoutExpired:
+        return {'error': 'R script execution timed out'}
+    except Exception as e:
+        return {'error': f'R execution error: {str(e)}'}
+
+# R Analytics API Endpoints
+
+@app.route('/api/r/health', methods=['GET'])
+def r_health_check():
+    """Check R installation and availability"""
+    r_available = check_r_installation()
+    r_script_path = os.path.join('..', 'r-analytics', 'data_analyzer.R')
+    script_exists = os.path.exists(r_script_path)
+    
+    return jsonify({
+        'r_installed': r_available,
+        'r_script_available': script_exists,
+        'status': 'healthy' if r_available and script_exists else 'unavailable',
+        'message': 'R Analytics ready' if r_available and script_exists else 'R Analytics not available'
+    })
+
+@app.route('/api/r/analyze/basic', methods=['POST'])
+def r_basic_analysis():
+    """Perform R-based advanced statistical analysis"""
+    try:
+        if not check_r_installation():
+            return jsonify({'error': 'R is not installed or not accessible'}), 500
+            
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        
+        # Save uploaded file temporarily
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        # Execute R analysis
+        r_result = execute_r_script(file_path, 'basic')
+        
+        # Clean up file
+        os.remove(file_path)
+        
+        return jsonify({
+            'analysis_type': 'r_basic_statistics',
+            'engine': 'R',
+            'result': r_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in R basic analysis: {str(e)}")
+        return jsonify({'error': f'R basic analysis failed: {str(e)}'}), 500
+
+@app.route('/api/r/analyze/correlation', methods=['POST'])
+def r_correlation_analysis():
+    """Perform R-based advanced correlation analysis"""
+    try:
+        if not check_r_installation():
+            return jsonify({'error': 'R is not installed or not accessible'}), 500
+            
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        
+        # Save uploaded file temporarily
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        # Execute R analysis
+        r_result = execute_r_script(file_path, 'correlation')
+        
+        # Clean up file
+        os.remove(file_path)
+        
+        return jsonify({
+            'analysis_type': 'r_correlation_analysis',
+            'engine': 'R',
+            'result': r_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in R correlation analysis: {str(e)}")
+        return jsonify({'error': f'R correlation analysis failed: {str(e)}'}), 500
+
+@app.route('/api/r/analyze/tests', methods=['POST'])
+def r_statistical_tests():
+    """Perform R-based comprehensive statistical tests"""
+    try:
+        if not check_r_installation():
+            return jsonify({'error': 'R is not installed or not accessible'}), 500
+            
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        
+        # Save uploaded file temporarily
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        # Execute R analysis
+        r_result = execute_r_script(file_path, 'tests')
+        
+        # Clean up file
+        os.remove(file_path)
+        
+        return jsonify({
+            'analysis_type': 'r_statistical_tests',
+            'engine': 'R',
+            'result': r_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in R statistical tests: {str(e)}")
+        return jsonify({'error': f'R statistical tests failed: {str(e)}'}), 500
+
+@app.route('/api/r/analyze/regression', methods=['POST'])
+def r_regression_analysis():
+    """Perform R-based advanced regression modeling"""
+    try:
+        if not check_r_installation():
+            return jsonify({'error': 'R is not installed or not accessible'}), 500
+            
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        target_column = request.form.get('target_column')
+        method = request.form.get('method', 'linear')
+        
+        if not target_column:
+            return jsonify({'error': 'Target column is required for regression analysis'}), 400
+        
+        # Save uploaded file temporarily
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        # Execute R analysis
+        r_result = execute_r_script(file_path, 'regression', target_column, method)
+        
+        # Clean up file
+        os.remove(file_path)
+        
+        return jsonify({
+            'analysis_type': 'r_regression_analysis',
+            'engine': 'R',
+            'target_column': target_column,
+            'method': method,
+            'result': r_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in R regression analysis: {str(e)}")
+        return jsonify({'error': f'R regression analysis failed: {str(e)}'}), 500
+
+@app.route('/api/r/analyze/survival', methods=['POST'])
+def r_survival_analysis():
+    """Perform R-based survival analysis"""
+    try:
+        if not check_r_installation():
+            return jsonify({'error': 'R is not installed or not accessible'}), 500
+            
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        time_column = request.form.get('time_column')
+        event_column = request.form.get('event_column')
+        group_column = request.form.get('group_column', '')
+        
+        if not time_column or not event_column:
+            return jsonify({'error': 'Time and event columns are required for survival analysis'}), 400
+        
+        # Save uploaded file temporarily
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        # Execute R analysis
+        args = [time_column, event_column]
+        if group_column:
+            args.append(group_column)
+            
+        r_result = execute_r_script(file_path, 'survival', *args)
+        
+        # Clean up file
+        os.remove(file_path)
+        
+        return jsonify({
+            'analysis_type': 'r_survival_analysis',
+            'engine': 'R',
+            'time_column': time_column,
+            'event_column': event_column,
+            'group_column': group_column if group_column else None,
+            'result': r_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in R survival analysis: {str(e)}")
+        return jsonify({'error': f'R survival analysis failed: {str(e)}'}), 500
+
+@app.route('/api/r/analyze/timeseries', methods=['POST'])
+def r_time_series_analysis():
+    """Perform R-based advanced time series analysis"""
+    try:
+        if not check_r_installation():
+            return jsonify({'error': 'R is not installed or not accessible'}), 500
+            
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        date_column = request.form.get('date_column')
+        value_column = request.form.get('value_column')
+        
+        if not date_column or not value_column:
+            return jsonify({'error': 'Date and value columns are required for time series analysis'}), 400
+        
+        # Save uploaded file temporarily
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        # Execute R analysis
+        r_result = execute_r_script(file_path, 'timeseries', date_column, value_column)
+        
+        # Clean up file
+        os.remove(file_path)
+        
+        return jsonify({
+            'analysis_type': 'r_time_series_analysis',
+            'engine': 'R',
+            'date_column': date_column,
+            'value_column': value_column,
+            'result': r_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in R time series analysis: {str(e)}")
+        return jsonify({'error': f'R time series analysis failed: {str(e)}'}), 500
+
+@app.route('/api/r/analyze/clustering', methods=['POST'])
+def r_clustering_analysis():
+    """Perform R-based advanced clustering analysis"""
+    try:
+        if not check_r_installation():
+            return jsonify({'error': 'R is not installed or not accessible'}), 500
+            
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        n_clusters = request.form.get('n_clusters', '3')
+        method = request.form.get('method', 'kmeans')
+        
+        # Save uploaded file temporarily
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        # Execute R analysis
+        r_result = execute_r_script(file_path, 'clustering', n_clusters, method)
+        
+        # Clean up file
+        os.remove(file_path)
+        
+        return jsonify({
+            'analysis_type': 'r_clustering_analysis',
+            'engine': 'R',
+            'n_clusters': int(n_clusters),
+            'method': method,
+            'result': r_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in R clustering analysis: {str(e)}")
+        return jsonify({'error': f'R clustering analysis failed: {str(e)}'}), 500
+
+@app.route('/api/r/analyze/comprehensive', methods=['POST'])
+def r_comprehensive_analysis():
+    """Perform comprehensive R-based analysis"""
+    try:
+        if not check_r_installation():
+            return jsonify({'error': 'R is not installed or not accessible'}), 500
+            
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        
+        # Save uploaded file temporarily
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        # Execute R comprehensive analysis
+        r_result = execute_r_script(file_path, 'comprehensive')
+        
+        # Clean up file
+        os.remove(file_path)
+        
+        return jsonify({
+            'analysis_type': 'r_comprehensive_analysis',
+            'engine': 'R',
+            'result': r_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in R comprehensive analysis: {str(e)}")
+        return jsonify({'error': f'R comprehensive analysis failed: {str(e)}'}), 500
+
+# Combined Python + R Analysis
+@app.route('/api/combined/comprehensive', methods=['POST'])
+def combined_comprehensive_analysis():
+    """Perform comprehensive analysis using both Python and R engines"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        target_column = request.form.get('target_column')  # Optional for ML
+        n_clusters = int(request.form.get('n_clusters', 3))
+        
+        # Save uploaded file temporarily
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        results = {
+            'python_analysis': {},
+            'r_analysis': {},
+            'analysis_type': 'combined_comprehensive'
+        }
+        
+        # Python analysis
+        try:
+            load_result = analyzer.load_data(file_path)
+            if load_result['success']:
+                results['python_analysis'] = {
+                    'file_info': load_result,
+                    'basic_statistics': analyzer.basic_statistics(),
+                    'correlation_analysis': analyzer.correlation_analysis(),
+                    'outlier_detection': analyzer.outlier_detection(),
+                    'data_quality': analyzer.data_quality_assessment(),
+                    'statistical_tests': analyzer.statistical_tests(),
+                    'clustering_analysis': analyzer.clustering_analysis(n_clusters)
+                }
+                
+                # Add ML analysis if target column provided
+                if target_column and target_column in analyzer.data.columns:
+                    results['python_analysis']['machine_learning'] = analyzer.machine_learning_analysis(target_column)
+                    
+        except Exception as e:
+            results['python_analysis'] = {'error': f'Python analysis failed: {str(e)}'}
+        
+        # R analysis
+        if check_r_installation():
+            try:
+                r_result = execute_r_script(file_path, 'comprehensive')
+                results['r_analysis'] = r_result
+            except Exception as e:
+                results['r_analysis'] = {'error': f'R analysis failed: {str(e)}'}
+        else:
+            results['r_analysis'] = {'error': 'R is not installed or not accessible'}
+        
+        # Clean up file
+        os.remove(file_path)
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        logger.error(f"Error in combined comprehensive analysis: {str(e)}")
+        return jsonify({'error': f'Combined analysis failed: {str(e)}'}), 500
+
 @app.route('/api/sample/generate', methods=['GET'])
 def generate_sample_data():
     """Generate sample data for testing"""
@@ -533,8 +963,8 @@ def internal_error(e):
     return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == '__main__':
-    print("🐍 Starting Enhanced Python Data Analysis API Server...")
-    print("📊 Available endpoints:")
+    print("🐍🔬 Starting Enhanced Python + R Data Analysis API Server...")
+    print("📊 Python Analytics Endpoints:")
     print("   POST /api/analyze/upload - Upload and basic analysis")
     print("   POST /api/analyze/correlation - Correlation analysis")
     print("   POST /api/analyze/machine_learning - ML analysis")
@@ -543,12 +973,28 @@ if __name__ == '__main__':
     print("   POST /api/analyze/quality - Data quality assessment")
     print("   POST /api/analyze/statistical_tests - Statistical tests")
     print("   POST /api/analyze/timeseries - Time series analysis")
-    print("   POST /api/analyze/visualizations - Generate visualizations")
-    print("   POST /api/analyze/comprehensive - Complete analysis")
+    print("   POST /api/analyze/comprehensive - Complete Python analysis")
+    print()
+    print("📈 R Analytics Endpoints:")
+    print("   POST /api/r/analyze/basic - R advanced statistics")
+    print("   POST /api/r/analyze/correlation - R advanced correlation")
+    print("   POST /api/r/analyze/tests - R comprehensive statistical tests")
+    print("   POST /api/r/analyze/regression - R advanced regression modeling")
+    print("   POST /api/r/analyze/survival - R survival analysis")
+    print("   POST /api/r/analyze/timeseries - R advanced time series")
+    print("   POST /api/r/analyze/clustering - R advanced clustering")
+    print("   POST /api/r/analyze/comprehensive - Complete R analysis")
+    print()
+    print("🤝 Combined Analytics:")
+    print("   POST /api/combined/comprehensive - Python + R combined analysis")
+    print()
+    print("🛠️ Utility Endpoints:")
+    print("   GET  /api/r/health - Check R installation")
     print("   GET  /api/models/available - Available models")
     print("   GET  /api/sample/generate - Generate sample data")
     print("   GET  /health - Health check")
     print()
     print("🚀 Server starting on http://localhost:5000")
+    print("💡 Use both Python ML power and R statistical excellence!")
     
     app.run(host='0.0.0.0', port=5000, debug=True)
