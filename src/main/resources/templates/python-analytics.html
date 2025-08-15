@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Analytics - Data Analysis App</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-chart-line me-2"></i>
+                Data Analysis App
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/upload">Upload Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/python-analytics">Python Analytics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/sample-data">Sample Analysis</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">
+                            <i class="fab fa-python me-2 text-warning"></i>
+                            Advanced Python Analytics
+                        </h2>
+                        <p class="card-text">
+                            Harness the power of Python for machine learning, advanced statistics, and data visualization.
+                            Upload your data to perform sophisticated analysis using scikit-learn, pandas, and more.
+                        </p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div id="python-status" class="alert" role="alert">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                    Checking Python service status...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Options -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-cogs me-2"></i>
+                            Analysis Options
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="pythonAnalysisForm" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="pythonFile" class="form-label">CSV File</label>
+                                        <input type="file" class="form-control" id="pythonFile" name="file" 
+                                               accept=".csv" required>
+                                        <div class="form-text">Upload a CSV file for advanced Python analysis</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="analysisType" class="form-label">Analysis Type</label>
+                                        <select class="form-control" id="analysisType" name="analysisType">
+                                            <option value="comprehensive">Comprehensive Analysis (All Methods)</option>
+                                            <option value="ml">Machine Learning</option>
+                                            <option value="correlation">Correlation Analysis</option>
+                                            <option value="clustering">Clustering Analysis</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row" id="mlOptions" style="display: none;">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="targetColumn" class="form-label">Target Column (for ML)</label>
+                                        <input type="text" class="form-control" id="targetColumn" name="target_column"
+                                               placeholder="e.g., price, category, sales">
+                                        <div class="form-text">Column to predict (required for ML analysis)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row" id="clusteringOptions" style="display: none;">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nClusters" class="form-label">Number of Clusters</label>
+                                        <input type="number" class="form-control" id="nClusters" name="n_clusters"
+                                               value="3" min="2" max="10">
+                                        <div class="form-text">Number of clusters for K-means analysis</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg" id="pythonAnalyzeBtn">
+                                    <i class="fab fa-python me-2"></i>
+                                    Analyze with Python
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="pythonLoadingIndicator" class="text-center mt-4" style="display: none;">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Running Python analysis, this may take a moment...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="pythonResults" style="display: none;">
+            <!-- Basic Statistics -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0">
+                                <i class="fas fa-calculator me-2"></i>
+                                Enhanced Statistical Analysis
+                            </h4>
+                        </div>
+                        <div class="card-body" id="pythonStatsContainer">
+                            <!-- Statistics will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Machine Learning Results -->
+            <div id="mlResults" class="row mb-4" style="display: none;">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0">
+                                <i class="fas fa-robot me-2"></i>
+                                Machine Learning Results
+                            </h4>
+                        </div>
+                        <div class="card-body" id="mlResultsContainer">
+                            <!-- ML results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Correlation Analysis -->
+            <div id="correlationResults" class="row mb-4" style="display: none;">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0">
+                                <i class="fas fa-project-diagram me-2"></i>
+                                Correlation Analysis
+                            </h4>
+                        </div>
+                        <div class="card-body" id="correlationContainer">
+                            <!-- Correlation results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clustering Results -->
+            <div id="clusteringResults" class="row mb-4" style="display: none;">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0">
+                                <i class="fas fa-sitemap me-2"></i>
+                                Clustering Analysis
+                            </h4>
+                        </div>
+                        <div class="card-body" id="clusteringContainer">
+                            <!-- Clustering results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Python Features Section -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fab fa-python me-2 text-warning"></i>
+                            Python Analytics Features
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="feature-highlight">
+                                    <i class="fas fa-brain fa-2x text-primary mb-2"></i>
+                                    <h5>Machine Learning</h5>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success me-1"></i> Random Forest</li>
+                                        <li><i class="fas fa-check text-success me-1"></i> Linear/Logistic Regression</li>
+                                        <li><i class="fas fa-check text-success me-1"></i> Support Vector Machines</li>
+                                        <li><i class="fas fa-check text-success me-1"></i> Gradient Boosting</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="feature-highlight">
+                                    <i class="fas fa-chart-area fa-2x text-info mb-2"></i>
+                                    <h5>Advanced Statistics</h5>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success me-1"></i> Correlation Analysis</li>
+                                        <li><i class="fas fa-check text-success me-1"></i> Outlier Detection</li>
+                                        <li><i class="fas fa-check text-success me-1"></i> Distribution Analysis</li>
+                                        <li><i class="fas fa-check text-success me-1"></i> Statistical Tests</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="feature-highlight">
+                                    <i class="fas fa-sitemap fa-2x text-warning mb-2"></i>
+                                    <h5>Clustering</h5>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success me-1"></i> K-Means Clustering</li>
+                                        <li><i class="fas fa-check text-success me-1"></i> Hierarchical Clustering</li>
+                                        <li><i class="fas fa-check text-success me-1"></i> DBSCAN</li>
+                                        <li><i class="fas fa-check text-success me-1"></i> Cluster Validation</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="feature-highlight">
+                                    <i class="fas fa-chart-pie fa-2x text-danger mb-2"></i>
+                                    <h5>Visualizations</h5>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success me-1"></i> Distribution Plots</li>
+                                        <li><i class="fas fa-check text-success me-1"></i> Correlation Heatmaps</li>
+                                        <li><i class="fas fa-check text-success me-1"></i> Scatter Plots</li>
+                                        <li><i class="fas fa-check text-success me-1"></i> Box Plots</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mt-4 mb-4">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-flask fa-3x text-success mb-3"></i>
+                        <h5>Test with Sample Data</h5>
+                        <p class="text-muted">Try Python analytics with our built-in sample dataset</p>
+                        <button id="pythonSampleBtn" class="btn btn-outline-success">
+                            <i class="fab fa-python me-2"></i>
+                            Analyze Sample Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-code fa-3x text-info mb-3"></i>
+                        <h5>Available Models</h5>
+                        <p class="text-muted">View all available Python models and algorithms</p>
+                        <button id="showModelsBtn" class="btn btn-outline-info">
+                            <i class="fas fa-list me-2"></i>
+                            Show Available Models
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-light mt-5 py-4">
+        <div class="container text-center">
+            <p>&copy; 2024 Data Analysis App. Built with Java Spring Boot + Python Analytics.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/app.js}"></script>
+    <script th:inline="javascript">
+        // Check Python service status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkPythonService();
+            setupAnalysisTypeHandlers();
+            setupFormSubmission();
+        });
+
+        function checkPythonService() {
+            fetch('/api/python/health')
+                .then(response => response.json())
+                .then(data => {
+                    const statusDiv = document.getElementById('python-status');
+                    if (data.python_service_available) {
+                        statusDiv.className = 'alert alert-success';
+                        statusDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message;
+                        document.getElementById('pythonAnalyzeBtn').disabled = false;
+                    } else {
+                        statusDiv.className = 'alert alert-warning';
+                        statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + data.message + 
+                                            '<br><small>Start the Python server: <code>cd python-analytics && python python_api_server.py</code></small>';
+                        document.getElementById('pythonAnalyzeBtn').disabled = true;
+                    }
+                })
+                .catch(error => {
+                    const statusDiv = document.getElementById('python-status');
+                    statusDiv.className = 'alert alert-danger';
+                    statusDiv.innerHTML = '<i class="fas fa-times-circle me-2"></i>Error checking Python service status';
+                });
+        }
+
+        function setupAnalysisTypeHandlers() {
+            const analysisType = document.getElementById('analysisType');
+            const mlOptions = document.getElementById('mlOptions');
+            const clusteringOptions = document.getElementById('clusteringOptions');
+
+            analysisType.addEventListener('change', function() {
+                // Hide all options first
+                mlOptions.style.display = 'none';
+                clusteringOptions.style.display = 'none';
+
+                // Show relevant options
+                if (this.value === 'ml' || this.value === 'comprehensive') {
+                    mlOptions.style.display = 'block';
+                }
+                if (this.value === 'clustering' || this.value === 'comprehensive') {
+                    clusteringOptions.style.display = 'block';
+                }
+            });
+
+            // Trigger initial setup
+            analysisType.dispatchEvent(new Event('change'));
+        }
+
+        function setupFormSubmission() {
+            document.getElementById('pythonAnalysisForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                performPythonAnalysis();
+            });
+
+            document.getElementById('pythonSampleBtn').addEventListener('click', function() {
+                loadPythonSampleData();
+            });
+
+            document.getElementById('showModelsBtn').addEventListener('click', function() {
+                showAvailableModels();
+            });
+        }
+
+        function performPythonAnalysis() {
+            const formData = new FormData(document.getElementById('pythonAnalysisForm'));
+            const analysisType = document.getElementById('analysisType').value;
+
+            // Show loading indicator
+            document.getElementById('pythonLoadingIndicator').style.display = 'block';
+            document.getElementById('pythonResults').style.display = 'none';
+
+            let endpoint = '/api/python/';
+            switch(analysisType) {
+                case 'comprehensive':
+                    endpoint += 'comprehensive';
+                    break;
+                case 'ml':
+                    endpoint += 'ml';
+                    break;
+                case 'correlation':
+                    endpoint += 'correlation';
+                    break;
+                case 'clustering':
+                    endpoint += 'clustering';
+                    break;
+            }
+
+            fetch(endpoint, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('pythonLoadingIndicator').style.display = 'none';
+                if (data.error) {
+                    showError(data.message);
+                } else {
+                    displayPythonResults(data, analysisType);
+                }
+            })
+            .catch(error => {
+                document.getElementById('pythonLoadingIndicator').style.display = 'none';
+                showError('Analysis failed: ' + error.message);
+            });
+        }
+
+        function displayPythonResults(data, analysisType) {
+            document.getElementById('pythonResults').style.display = 'block';
+
+            // Display based on analysis type
+            if (analysisType === 'comprehensive') {
+                displayComprehensiveResults(data.results);
+            } else {
+                displaySpecificResults(data, analysisType);
+            }
+        }
+
+        function displayComprehensiveResults(results) {
+            // Display basic statistics
+            if (results.basic_statistics) {
+                displayBasicStatistics(results.basic_statistics);
+            }
+
+            // Display ML results if available
+            if (results.machine_learning) {
+                displayMLResults(results.machine_learning);
+                document.getElementById('mlResults').style.display = 'block';
+            }
+
+            // Display correlation results
+            if (results.correlation_analysis) {
+                displayCorrelationResults(results.correlation_analysis);
+                document.getElementById('correlationResults').style.display = 'block';
+            }
+
+            // Display clustering results
+            if (results.clustering_analysis) {
+                displayClusteringResults(results.clustering_analysis);
+                document.getElementById('clusteringResults').style.display = 'block';
+            }
+        }
+
+        function displaySpecificResults(data, type) {
+            switch(type) {
+                case 'ml':
+                    displayMLResults(data.result);
+                    document.getElementById('mlResults').style.display = 'block';
+                    break;
+                case 'correlation':
+                    displayCorrelationResults(data.result);
+                    document.getElementById('correlationResults').style.display = 'block';
+                    break;
+                case 'clustering':
+                    displayClusteringResults(data.result);
+                    document.getElementById('clusteringResults').style.display = 'block';
+                    break;
+            }
+        }
+
+        function displayBasicStatistics(stats) {
+            let html = '<div class="row">';
+            
+            // Dataset info
+            if (stats.dataset_info) {
+                html += `
+                    <div class="col-md-12 mb-4">
+                        <h5><i class="fas fa-info-circle me-2"></i>Dataset Information</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="stat-box">
+                                    <div class="stat-value">${stats.dataset_info.total_rows}</div>
+                                    <div class="stat-label">Total Rows</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-box">
+                                    <div class="stat-value">${stats.dataset_info.total_columns}</div>
+                                    <div class="stat-label">Total Columns</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-box">
+                                    <div class="stat-value">${stats.dataset_info.missing_values}</div>
+                                    <div class="stat-label">Missing Values</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-box">
+                                    <div class="stat-value">${stats.dataset_info.memory_usage}</div>
+                                    <div class="stat-label">Memory Usage</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Numeric analysis
+            if (stats.numeric_analysis) {
+                html += '<div class="col-md-6"><h5><i class="fas fa-calculator me-2"></i>Numeric Columns</h5>';
+                for (const [column, columnStats] of Object.entries(stats.numeric_analysis)) {
+                    html += `
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">${column}</h6>
+                                <div class="row">
+                                    <div class="col-6"><small>Mean:</small> <strong>${columnStats.mean.toFixed(2)}</strong></div>
+                                    <div class="col-6"><small>Std Dev:</small> <strong>${columnStats.std.toFixed(2)}</strong></div>
+                                    <div class="col-6"><small>Min:</small> <strong>${columnStats.min}</strong></div>
+                                    <div class="col-6"><small>Max:</small> <strong>${columnStats.max}</strong></div>
+                                    <div class="col-6"><small>Skewness:</small> <strong>${columnStats.skewness.toFixed(3)}</strong></div>
+                                    <div class="col-6"><small>Outliers:</small> <strong>${columnStats.outliers_iqr}</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+
+            // Categorical analysis
+            if (stats.categorical_analysis) {
+                html += '<div class="col-md-6"><h5><i class="fas fa-tags me-2"></i>Categorical Columns</h5>';
+                for (const [column, columnStats] of Object.entries(stats.categorical_analysis)) {
+                    html += `
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">${column}</h6>
+                                <p><small>Unique Values:</small> <strong>${columnStats.unique_values}</strong></p>
+                                <p><small>Most Frequent:</small> <strong>${columnStats.most_frequent}</strong> (${columnStats.most_frequent_count} times)</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+
+            html += '</div>';
+            document.getElementById('pythonStatsContainer').innerHTML = html;
+        }
+
+        function displayMLResults(results) {
+            if (results.error) {
+                document.getElementById('mlResultsContainer').innerHTML = 
+                    `<div class="alert alert-warning">${results.error}</div>`;
+                return;
+            }
+
+            let html = `
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <div class="stat-value">${results.task_type}</div>
+                            <div class="stat-label">Task Type</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <div class="stat-value">${results.feature_count}</div>
+                            <div class="stat-label">Features</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <div class="stat-value">${results.train_samples}</div>
+                            <div class="stat-label">Train Samples</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <div class="stat-value">${results.test_samples}</div>
+                            <div class="stat-label">Test Samples</div>
+                        </div>
+                    </div>
+                </div>
+                <h5><i class="fas fa-robot me-2"></i>Model Performance</h5>
+                <div class="row">
+            `;
+
+            for (const [modelName, modelResults] of Object.entries(results.models)) {
+                if (modelResults.error) {
+                    html += `
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <h6 class="card-title">${modelName}</h6>
+                                    <div class="alert alert-warning">${modelResults.error}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-success">
+                                <div class="card-body">
+                                    <h6 class="card-title">${modelName}</h6>
+                    `;
+                    
+                    if (results.task_type === 'classification') {
+                        html += `<p><strong>Accuracy:</strong> ${(modelResults.accuracy * 100).toFixed(2)}%</p>`;
+                    } else {
+                        html += `
+                            <p><strong>R² Score:</strong> ${modelResults.r2_score.toFixed(4)}</p>
+                            <p><strong>RMSE:</strong> ${modelResults.rmse.toFixed(4)}</p>
+                        `;
+                    }
+                    
+                    html += `
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            html += '</div>';
+            document.getElementById('mlResultsContainer').innerHTML = html;
+        }
+
+        function displayCorrelationResults(results) {
+            if (results.error) {
+                document.getElementById('correlationContainer').innerHTML = 
+                    `<div class="alert alert-warning">${results.error}</div>`;
+                return;
+            }
+
+            let html = `
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="stat-box">
+                            <div class="stat-value">${results.summary.total_variables}</div>
+                            <div class="stat-label">Variables</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-box">
+                            <div class="stat-value">${results.summary.strong_correlations_count}</div>
+                            <div class="stat-label">Strong Correlations</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-box">
+                            <div class="stat-value">${results.summary.moderate_correlations_count}</div>
+                            <div class="stat-label">Moderate Correlations</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (results.strong_correlations && results.strong_correlations.length > 0) {
+                html += '<h5><i class="fas fa-link me-2"></i>Notable Correlations</h5>';
+                html += '<div class="table-responsive"><table class="table table-striped">';
+                html += '<thead><tr><th>Variable 1</th><th>Variable 2</th><th>Pearson</th><th>Spearman</th><th>Strength</th></tr></thead><tbody>';
+                
+                results.strong_correlations.forEach(corr => {
+                    const strengthColor = corr.strength === 'strong' ? 'success' : 'warning';
+                    html += `
+                        <tr>
+                            <td>${corr.variable1}</td>
+                            <td>${corr.variable2}</td>
+                            <td>${corr.pearson.toFixed(3)}</td>
+                            <td>${corr.spearman.toFixed(3)}</td>
+                            <td><span class="badge bg-${strengthColor}">${corr.strength}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table></div>';
+            }
+
+            document.getElementById('correlationContainer').innerHTML = html;
+        }
+
+        function displayClusteringResults(results) {
+            if (results.error) {
+                document.getElementById('clusteringContainer').innerHTML = 
+                    `<div class="alert alert-warning">${results.error}</div>`;
+                return;
+            }
+
+            let html = `
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <div class="stat-value">${results.n_clusters}</div>
+                            <div class="stat-label">Clusters</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <div class="stat-value">${results.silhouette_score.toFixed(3)}</div>
+                            <div class="stat-label">Silhouette Score</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <div class="stat-value">${results.inertia.toFixed(2)}</div>
+                            <div class="stat-label">Inertia</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <div class="stat-value">${results.features_used.length}</div>
+                            <div class="stat-label">Features Used</div>
+                        </div>
+                    </div>
+                </div>
+                <h5><i class="fas fa-sitemap me-2"></i>Cluster Information</h5>
+                <div class="row">
+            `;
+
+            for (const [clusterName, clusterInfo] of Object.entries(results.cluster_statistics)) {
+                html += `
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">${clusterName}</h6>
+                                <p><strong>Size:</strong> ${clusterInfo.size} (${clusterInfo.percentage.toFixed(1)}%)</p>
+                                <p><strong>Characteristics:</strong></p>
+                                <ul class="list-unstyled">
+                `;
+                
+                for (const [feature, value] of Object.entries(clusterInfo.means)) {
+                    html += `<li><small>${feature}:</small> <strong>${value.toFixed(2)}</strong></li>`;
+                }
+                
+                html += `
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            document.getElementById('clusteringContainer').innerHTML = html;
+        }
+
+        function loadPythonSampleData() {
+            document.getElementById('pythonLoadingIndicator').style.display = 'block';
+            document.getElementById('pythonResults').style.display = 'none';
+
+            fetch('/api/python/sample')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('pythonLoadingIndicator').style.display = 'none';
+                    if (data.error) {
+                        showError(data.message);
+                    } else {
+                        displayBasicStatistics(data.basic_statistics);
+                        displayCorrelationResults(data.correlation_analysis);
+                        document.getElementById('pythonResults').style.display = 'block';
+                        document.getElementById('correlationResults').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('pythonLoadingIndicator').style.display = 'none';
+                    showError('Failed to load sample data: ' + error.message);
+                });
+        }
+
+        function showAvailableModels() {
+            fetch('/api/python/models')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showError(data.message);
+                    } else {
+                        let modelsHtml = '<div class="modal fade" id="modelsModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">';
+                        modelsHtml += '<div class="modal-header"><h5 class="modal-title">Available Python Models</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>';
+                        modelsHtml += '<div class="modal-body"><div class="row">';
+                        
+                        // Classification models
+                        modelsHtml += '<div class="col-md-6"><h6><i class="fas fa-tags me-2"></i>Classification Models</h6><ul class="list-group list-group-flush">';
+                        data.classification_models.forEach(model => {
+                            modelsHtml += `<li class="list-group-item">${model}</li>`;
+                        });
+                        modelsHtml += '</ul></div>';
+                        
+                        // Regression models
+                        modelsHtml += '<div class="col-md-6"><h6><i class="fas fa-chart-line me-2"></i>Regression Models</h6><ul class="list-group list-group-flush">';
+                        data.regression_models.forEach(model => {
+                            modelsHtml += `<li class="list-group-item">${model}</li>`;
+                        });
+                        modelsHtml += '</ul></div>';
+                        
+                        // Clustering algorithms
+                        modelsHtml += '<div class="col-md-12 mt-3"><h6><i class="fas fa-sitemap me-2"></i>Clustering Algorithms</h6><ul class="list-group list-group-flush">';
+                        data.clustering_algorithms.forEach(algo => {
+                            modelsHtml += `<li class="list-group-item">${algo}</li>`;
+                        });
+                        modelsHtml += '</ul></div>';
+                        
+                        modelsHtml += '</div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div></div></div></div>';
+                        
+                        document.body.insertAdjacentHTML('beforeend', modelsHtml);
+                        new bootstrap.Modal(document.getElementById('modelsModal')).show();
+                    }
+                })
+                .catch(error => {
+                    showError('Failed to get available models: ' + error.message);
+                });
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger alert-dismissible fade show';
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.container').firstChild);
+        }
+    </script>
+</body>
+</html>
