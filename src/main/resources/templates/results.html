@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Results - Data Analysis App</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-chart-line me-2"></i>
+                Data Analysis App
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/upload">Upload Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/sample-data">Sample Analysis</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Analysis Results
+                        </h2>
+                        <p class="card-text">
+                            <strong>File:</strong> <span th:text="${filename}"></span><br>
+                            <strong>Total Rows:</strong> <span th:text="${analysisResult.totalRows}"></span><br>
+                            <strong>Total Columns:</strong> <span th:text="${analysisResult.totalColumns}"></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="row mb-4" th:if="${analysisResult.statistics}">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-calculator me-2"></i>
+                            Statistical Summary
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div th:each="stat : ${analysisResult.statistics}" class="col-md-6 col-lg-4 mb-3">
+                                <div class="stat-card">
+                                    <h5 th:text="${stat.key}" class="text-primary"></h5>
+                                    <div class="stat-details">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <small class="text-muted">Count:</small><br>
+                                                <strong th:text="${#numbers.formatDecimal(stat.value.count, 0, 0)}"></strong>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Mean:</small><br>
+                                                <strong th:text="${#numbers.formatDecimal(stat.value.mean, 1, 2)}"></strong>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-6">
+                                                <small class="text-muted">Min:</small><br>
+                                                <strong th:text="${#numbers.formatDecimal(stat.value.min, 1, 2)}"></strong>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Max:</small><br>
+                                                <strong th:text="${#numbers.formatDecimal(stat.value.max, 1, 2)}"></strong>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-12">
+                                                <small class="text-muted">Std Dev:</small><br>
+                                                <strong th:text="${#numbers.formatDecimal(stat.value.stddev, 1, 2)}"></strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row mb-4" th:if="${analysisResult.chartData}">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-chart-area me-2"></i>
+                            Data Visualizations
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div th:each="chart : ${analysisResult.chartData}" class="col-md-6 mb-4">
+                                <div class="chart-container">
+                                    <h6 th:text="${#strings.replace(chart.key, '_histogram', '')}" class="text-center mb-3"></h6>
+                                    <canvas th:id="'chart_' + ${chartStat.index}" 
+                                            th:data-values="${chart.value}"
+                                            th:data-label="${#strings.replace(chart.key, '_histogram', '')}"
+                                            class="histogram-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Preview -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-table me-2"></i>
+                            Data Preview
+                            <small class="text-muted">(First 10 rows)</small>
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th th:each="header : ${analysisResult.headers}" th:text="${header}"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="row, rowStat : ${analysisResult.data}" 
+                                        th:if="${rowStat.index < 10}">
+                                        <td th:each="header : ${analysisResult.headers}" 
+                                            th:text="${row[header]}"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div th:if="${#lists.size(analysisResult.data) > 10}" class="text-muted mt-2">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                Showing first 10 rows of <span th:text="${analysisResult.totalRows}"></span> total rows
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <a href="/upload" class="btn btn-primary me-3">
+                    <i class="fas fa-upload me-2"></i>
+                    Upload Another File
+                </a>
+                <a href="/" class="btn btn-outline-secondary">
+                    <i class="fas fa-home me-2"></i>
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-light mt-5 py-4">
+        <div class="container text-center">
+            <p>&copy; 2024 Data Analysis App. Built with Java Spring Boot.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/app.js}"></script>
+    <script th:inline="javascript">
+        // Create histograms for numeric data
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartElements = document.querySelectorAll('.histogram-chart');
+            
+            chartElements.forEach((canvas, index) => {
+                const values = JSON.parse(canvas.dataset.values);
+                const label = canvas.dataset.label;
+                
+                if (values && values.length > 0) {
+                    // Create histogram data
+                    const min = Math.min(...values);
+                    const max = Math.max(...values);
+                    const bins = 10;
+                    const binSize = (max - min) / bins;
+                    const binLabels = [];
+                    const binCounts = new Array(bins).fill(0);
+                    
+                    // Create bin labels and count values
+                    for (let i = 0; i < bins; i++) {
+                        binLabels.push((min + i * binSize).toFixed(1));
+                    }
+                    
+                    values.forEach(value => {
+                        const binIndex = Math.min(Math.floor((value - min) / binSize), bins - 1);
+                        binCounts[binIndex]++;
+                    });
+                    
+                    // Create chart
+                    new Chart(canvas, {
+                        type: 'bar',
+                        data: {
+                            labels: binLabels,
+                            datasets: [{
+                                label: label + ' Distribution',
+                                data: binCounts,
+                                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Frequency'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: label
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Data - Data Analysis App</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-chart-line me-2"></i>
+                Data Analysis App
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/upload">Upload Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/sample-data">Sample Analysis</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            <i class="fas fa-upload me-2"></i>
+                            Upload Your Data File
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${error}" class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span th:text="${error}"></span>
+                        </div>
+
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Supported formats:</strong> CSV files (.csv)
+                            <br>
+                            <strong>File requirements:</strong> First row should contain column headers
+                        </div>
+
+                        <form th:action="@{/upload}" method="post" enctype="multipart/form-data" id="uploadForm">
+                            <div class="mb-4">
+                                <label for="file" class="form-label">Choose CSV File</label>
+                                <input type="file" class="form-control" id="file" name="file" 
+                                       accept=".csv" required>
+                                <div class="form-text">
+                                    Select a CSV file from your computer to analyze
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg" id="uploadBtn">
+                                    <i class="fas fa-cloud-upload-alt me-2"></i>
+                                    Upload and Analyze
+                                </button>
+                                <a href="/" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>
+                                    Back to Home
+                                </a>
+                            </div>
+                        </form>
+
+                        <!-- Loading indicator -->
+                        <div id="loadingIndicator" class="text-center mt-4" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Analyzing your data, please wait...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File format help -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-question-circle me-2"></i>
+                            Need Help with File Format?
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>CSV Format Example:</strong></p>
+                        <pre class="bg-light p-3 rounded">Name,Age,Sales,Department
+John Doe,28,5000,Sales
+Jane Smith,32,7500,Marketing
+Bob Johnson,25,4200,IT</pre>
+                        
+                        <div class="mt-3">
+                            <h6>Tips for better analysis:</h6>
+                            <ul>
+                                <li>Use clear column headers in the first row</li>
+                                <li>Numeric columns should contain only numbers</li>
+                                <li>Avoid special characters in headers</li>
+                                <li>Keep file size under 10MB for optimal performance</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <a href="/sample-data" class="btn btn-outline-info">
+                                <i class="fas fa-eye me-2"></i>
+                                View Sample Analysis
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-light mt-5 py-4">
+        <div class="container text-center">
+            <p>&copy; 2024 Data Analysis App. Built with Java Spring Boot.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/app.js}"></script>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function() {
+            document.getElementById('uploadBtn').disabled = true;
+            document.getElementById('loadingIndicator').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
