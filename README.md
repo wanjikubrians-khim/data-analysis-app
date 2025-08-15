@@ -372,6 +372,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ combining the power of Java, Python, and R for comprehensive data analysis**
+**Built with ❤️ combining the power of Java, Python, and R for comprehensive data analysis ~ KHIMLabs 👌**
 
 🔬 Ready for enterprise-level analytics! 🎉
