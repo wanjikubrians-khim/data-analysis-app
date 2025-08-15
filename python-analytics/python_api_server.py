@@ -14,6 +14,7 @@ import subprocess
 from pathlib import Path
 import logging
 from data_analyzer import DataAnalyzer
+from report_generator import AnalysisReportGenerator, generate_complete_report
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -911,6 +912,290 @@ def combined_comprehensive_analysis():
         logger.error(f"Error in combined comprehensive analysis: {str(e)}")
         return jsonify({'error': f'Combined analysis failed: {str(e)}'}), 500
 
+# Report Generation Endpoints
+
+@app.route('/api/reports/generate', methods=['POST'])
+def generate_comprehensive_report():
+    """Generate comprehensive analysis report with visualizations and tables"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        include_code = request.form.get('include_code', 'false').lower() == 'true'
+        include_raw_results = request.form.get('include_raw_results', 'false').lower() == 'true'
+        report_format = request.form.get('format', 'markdown')  # markdown, json, or both
+        
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        if not file.filename.lower().endswith('.csv'):
+            return jsonify({'error': 'Only CSV files are supported'}), 400
+        
+        # Save uploaded file
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        try:
+            # Generate comprehensive report
+            report_info = generate_complete_report(
+                file_path, 
+                output_dir=f"reports/{file_id}",
+                include_code=include_code,
+                include_raw_results=include_raw_results
+            )
+            
+            # Clean up uploaded file
+            os.remove(file_path)
+            
+            if 'error' in report_info:
+                return jsonify(report_info), 400
+            
+            # Read the generated markdown report
+            with open(report_info['report_path'], 'r', encoding='utf-8') as f:
+                markdown_content = f.read()
+            
+            response_data = {
+                'status': 'success',
+                'report_id': file_id,
+                'report_info': report_info['summary'],
+                'download_links': {
+                    'markdown_report': f"/api/reports/download/{file_id}/markdown",
+                    'summary_json': f"/api/reports/download/{file_id}/summary"
+                }
+            }
+            
+            # Include content based on format request
+            if report_format in ['markdown', 'both']:
+                response_data['markdown_content'] = markdown_content
+            
+            if report_format in ['json', 'both']:
+                response_data['json_summary'] = report_info['summary']
+            
+            return jsonify(response_data)
+            
+        except Exception as e:
+            # Clean up on error
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            raise e
+            
+    except Exception as e:
+        logger.error(f"Error generating report: {str(e)}")
+        return jsonify({'error': f'Report generation failed: {str(e)}'}), 500
+
+@app.route('/api/reports/download/<report_id>/<file_type>', methods=['GET'])
+def download_report_file(report_id, file_type):
+    """Download generated report files"""
+    try:
+        from flask import send_file
+        
+        if file_type == 'markdown':
+            # Find the markdown file
+            report_dir = Path(f"reports/{report_id}")
+            markdown_files = list(report_dir.glob("*.md"))
+            if not markdown_files:
+                return jsonify({'error': 'Markdown report not found'}), 404
+            return send_file(markdown_files[0], as_attachment=True)
+            
+        elif file_type == 'summary':
+            # Find the summary JSON file
+            report_dir = Path(f"reports/{report_id}")
+            summary_files = list(report_dir.glob("*_summary.json"))
+            if not summary_files:
+                return jsonify({'error': 'Summary file not found'}), 404
+            return send_file(summary_files[0], as_attachment=True)
+            
+        elif file_type == 'plots':
+            # Create zip file of all plots
+            import zipfile
+            import tempfile
+            
+            report_dir = Path(f"reports/{report_id}")
+            plots_dir = report_dir / "plots"
+            
+            if not plots_dir.exists():
+                return jsonify({'error': 'Plots directory not found'}), 404
+            
+            # Create temporary zip file
+            temp_zip = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
+            with zipfile.ZipFile(temp_zip.name, 'w') as zipf:
+                for plot_file in plots_dir.glob("*.png"):
+                    zipf.write(plot_file, plot_file.name)
+            
+            return send_file(temp_zip.name, as_attachment=True, 
+                           download_name=f"plots_{report_id}.zip")
+            
+        elif file_type == 'tables':
+            # Create zip file of all tables
+            import zipfile
+            import tempfile
+            
+            report_dir = Path(f"reports/{report_id}")
+            tables_dir = report_dir / "tables"
+            
+            if not tables_dir.exists():
+                return jsonify({'error': 'Tables directory not found'}), 404
+            
+            # Create temporary zip file
+            temp_zip = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
+            with zipfile.ZipFile(temp_zip.name, 'w') as zipf:
+                for table_file in tables_dir.glob("*.csv"):
+                    zipf.write(table_file, table_file.name)
+            
+            return send_file(temp_zip.name, as_attachment=True,
+                           download_name=f"tables_{report_id}.zip")
+        else:
+            return jsonify({'error': 'Invalid file type'}), 400
+            
+    except Exception as e:
+        logger.error(f"Error downloading report file: {str(e)}")
+        return jsonify({'error': f'Download failed: {str(e)}'}), 500
+
+@app.route('/api/reports/list', methods=['GET'])
+def list_generated_reports():
+    """List all generated reports"""
+    try:
+        reports_dir = Path("reports")
+        if not reports_dir.exists():
+            return jsonify({'reports': []})
+        
+        reports = []
+        for report_dir in reports_dir.iterdir():
+            if report_dir.is_dir():
+                # Look for summary file
+                summary_files = list(report_dir.glob("*_summary.json"))
+                if summary_files:
+                    try:
+                        with open(summary_files[0], 'r', encoding='utf-8') as f:
+                            summary = json.load(f)
+                        reports.append({
+                            'report_id': report_dir.name,
+                            'generated_at': summary.get('generated_at'),
+                            'plots_count': summary.get('plots_generated', 0),
+                            'tables_count': summary.get('tables_generated', 0),
+                            'download_links': {
+                                'markdown': f"/api/reports/download/{report_dir.name}/markdown",
+                                'summary': f"/api/reports/download/{report_dir.name}/summary",
+                                'plots': f"/api/reports/download/{report_dir.name}/plots",
+                                'tables': f"/api/reports/download/{report_dir.name}/tables"
+                            }
+                        })
+                    except Exception as e:
+                        logger.warning(f"Error reading report summary {report_dir.name}: {e}")
+        
+        # Sort by generation time (newest first)
+        reports.sort(key=lambda x: x.get('generated_at', ''), reverse=True)
+        
+        return jsonify({
+            'reports': reports,
+            'total_count': len(reports)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error listing reports: {str(e)}")
+        return jsonify({'error': f'Failed to list reports: {str(e)}'}), 500
+
+@app.route('/api/reports/combined', methods=['POST'])
+def generate_combined_report():
+    """Generate comprehensive report using both Python and R analysis"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        include_code = request.form.get('include_code', 'false').lower() == 'true'
+        target_column = request.form.get('target_column')
+        n_clusters = int(request.form.get('n_clusters', 3))
+        
+        # Save uploaded file
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        try:
+            # Initialize report generator
+            reporter = AnalysisReportGenerator(f"reports/{file_id}")
+            
+            # Perform combined Python + R analysis
+            analyzer.load_data(file_path)
+            
+            # Python analysis
+            python_results = {
+                'basic_statistics': analyzer.basic_statistics(),
+                'correlation_analysis': analyzer.correlation_analysis(),
+                'outlier_detection': analyzer.outlier_detection(),
+                'data_quality': analyzer.data_quality_assessment(),
+                'clustering_analysis': analyzer.clustering_analysis(n_clusters)
+            }
+            
+            if target_column and target_column in analyzer.data.columns:
+                python_results['machine_learning'] = analyzer.machine_learning_analysis(target_column)
+            
+            # R analysis (if available)
+            r_results = {}
+            if check_r_installation():
+                try:
+                    r_results = execute_r_script(file_path, 'comprehensive')
+                except Exception as e:
+                    r_results = {'error': f'R analysis failed: {str(e)}'}
+            else:
+                r_results = {'error': 'R not available'}
+            
+            # Combined results
+            combined_results = {
+                'python_analysis': python_results,
+                'r_analysis': r_results,
+                'data_quality': python_results.get('data_quality', {}),
+                'basic_statistics': python_results.get('basic_statistics', {}),
+                'correlation_analysis': python_results.get('correlation_analysis', {})
+            }
+            
+            # Generate comprehensive report
+            data_filename = os.path.basename(file_path).replace('.csv', '')
+            title = f"Combined Python+R Analysis - {data_filename}"
+            
+            report_info = reporter.generate_comprehensive_report(
+                analyzer.data,
+                combined_results,
+                title=title,
+                include_code=include_code,
+                include_raw_results=True
+            )
+            
+            # Clean up
+            os.remove(file_path)
+            
+            # Read the generated report
+            with open(report_info['report_path'], 'r', encoding='utf-8') as f:
+                markdown_content = f.read()
+            
+            return jsonify({
+                'status': 'success',
+                'report_id': file_id,
+                'report_info': report_info['summary'],
+                'markdown_content': markdown_content,
+                'python_available': True,
+                'r_available': check_r_installation(),
+                'download_links': {
+                    'markdown_report': f"/api/reports/download/{file_id}/markdown",
+                    'plots': f"/api/reports/download/{file_id}/plots",
+                    'tables': f"/api/reports/download/{file_id}/tables"
+                }
+            })
+            
+        except Exception as e:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            raise e
+            
+    except Exception as e:
+        logger.error(f"Error generating combined report: {str(e)}")
+        return jsonify({'error': f'Combined report generation failed: {str(e)}'}), 500
+
 @app.route('/api/sample/generate', methods=['GET'])
 def generate_sample_data():
     """Generate sample data for testing"""
@@ -988,6 +1273,13 @@ if __name__ == '__main__':
     print("🤝 Combined Analytics:")
     print("   POST /api/combined/comprehensive - Python + R combined analysis")
     print()
+    print("📄 Report Generation Endpoints:")
+    print("   POST /api/reports/generate - Generate comprehensive markdown report")
+    print("   POST /api/reports/combined - Generate Python+R combined report")
+    print("   GET  /api/reports/list - List all generated reports")
+    print("   GET  /api/reports/download/<id>/<type> - Download report files")
+    print("        Types: markdown, summary, plots, tables")
+    print()
     print("🛠️ Utility Endpoints:")
     print("   GET  /api/r/health - Check R installation")
     print("   GET  /api/models/available - Available models")
@@ -995,6 +1287,7 @@ if __name__ == '__main__':
     print("   GET  /health - Health check")
     print()
     print("🚀 Server starting on http://localhost:5000")
+    print("📊 Complete analytics with markdown reports, plots, and tables!")
     print("💡 Use both Python ML power and R statistical excellence!")
     
     app.run(host='0.0.0.0', port=5000, debug=True)

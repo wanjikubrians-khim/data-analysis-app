@@ -1,0 +1,39 @@
+{
+  "report_path": "comprehensive_reports\\analysis_report_-_comprehensive_test_data.md",
+  "generated_at": "2025-08-15T16:52:45.611311",
+  "plots_generated": 3,
+  "tables_generated": 2,
+  "plots": [
+    {
+      "filename": "correlation_heatmap",
+      "filepath": "comprehensive_reports\\plots\\correlation_heatmap.png",
+      "title": "Correlation Matrix"
+    },
+    {
+      "filename": "distributions",
+      "filepath": "comprehensive_reports\\plots\\distributions.png",
+      "title": "Data Distributions"
+    },
+    {
+      "filename": "outlier_boxplots",
+      "filepath": "comprehensive_reports\\plots\\outlier_boxplots.png",
+      "title": "Outlier Detection - Box Plots"
+    }
+  ],
+  "tables": [
+    {
+      "filename": "data_overview",
+      "csv_path": "comprehensive_reports\\tables\\data_overview.csv",
+      "title": "Data Overview",
+      "rows": 5,
+      "displayed_rows": 5
+    },
+    {
+      "filename": "correlation_matrix",
+      "csv_path": "comprehensive_reports\\tables\\correlation_matrix.csv",
+      "title": "Correlation Matrix",
+      "rows": 6,
+      "displayed_rows": 6
+    }
+  ]
+}
