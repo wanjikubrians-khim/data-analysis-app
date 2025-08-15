@@ -1,249 +1,377 @@
-# Data Analysis Web Application 📊
+# 🚀 Advanced Multi-Engine Data Analysis Platform
 
-A comprehensive web-based data analysis application built with **Java Spring Boot**, designed to provide statistical analysis and data visualization capabilities through an intuitive web interface.
+A comprehensive enterprise-grade data analysis platform integrating **Java Spring Boot**, **Python**, and **R** to deliver powerful statistical analysis, machine learning capabilities, and interactive visualizations through an intuitive web interface.
 
-## 🚀 Features
+![Data Analysis Platform](https://img.shields.io/badge/Platform-Data%20Analysis-blue)
+![Languages](https://img.shields.io/badge/Languages-Java%20%7C%20Python%20%7C%20R-green)
+![Version](https://img.shields.io/badge/Version-2.0-orange)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
-- **File Upload**: Upload CSV files for instant analysis
-- **Statistical Analysis**: Comprehensive statistics including mean, median, standard deviation, and more
-- **Data Visualization**: Interactive charts and histograms using Chart.js
-- **Sample Data**: Built-in sample dataset for testing and demonstration
-- **Responsive Design**: Modern, mobile-friendly interface using Bootstrap 5
-- **Real-time Processing**: Instant analysis with loading indicators
-- **Cross-platform Support**: Foundation ready for mobile and desktop app expansion
+## ✨ Key Features
 
-## 🛠️ Tech Stack
+- 🔄 **Multi-Engine Architecture**: Seamlessly combine Java, Python, and R for comprehensive analytics
+- 🧠 **Advanced Machine Learning**: Classification, regression, clustering using scikit-learn algorithms
+- 📊 **Statistical Excellence**: 30+ statistical methods from basic stats to survival analysis and time series
+- 📈 **Interactive Visualizations**: Automated chart generation with customizable parameters
+- 🔍 **Data Quality Tools**: Missing value analysis, outlier detection, and data validation
+- 🌐 **RESTful API**: 25+ endpoints for comprehensive data analysis services
+- 📱 **Responsive Interface**: Modern, mobile-friendly web interface using Bootstrap 5
+- 📄 **Comprehensive Reports**: Markdown and JSON reports with visualizations and interpretation
+
+## 🏗️ Architecture
+
+The platform employs a modular, microservices-inspired architecture:
+
+```
+┌─────────────────────┐     ┌──────────────────────┐     ┌────────────────────┐
+│                     │     │                      │     │                    │
+│  Web Interface      │     │  Java Spring Boot    │     │  Python Analytics  │
+│  (Bootstrap 5 UI)   │◄───►│  (RESTful Backend)   │◄───►│  (ML & Data Proc.) │
+│                     │     │                      │     │                    │
+└─────────────────────┘     └──────────────────────┘     └────────┬───────────┘
+                                                                   │
+                                                                   ▼
+                                                         ┌────────────────────┐
+                                                         │                    │
+                                                         │   R Analytics      │
+                                                         │   (Adv. Statistics)│
+                                                         │                    │
+                                                         └────────────────────┘
+```
+
+- **Frontend Layer**: Bootstrap 5 + JavaScript for responsive user experience
+- **Application Layer**: Java Spring Boot with RESTful API endpoints
+- **Analytics Layer**: 
+  - Python engine for ML, data processing, and visualization
+  - R engine for advanced statistical analysis and specialized methods
+- **Integration Layer**: Flask API server with R subprocess integration
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Java 8+ (JDK or JRE)
+- Python 3.8+
+- R 4.0+ (for R analytics features)
+- Maven 3.6+
+
+### Option 1: Python-Only Analytics
+
+1. **Clone the repository**
+2. **Set up Python environment**:
+   ```bash
+   cd python-analytics
+   setup_python_env.bat
+   ```
+3. **Start Python API**:
+   ```bash
+   start_python_server.bat
+   ```
+4. **Run the Java application**:
+   ```bash
+   run-app.bat
+   ```
+5. **Access the application**: Open [http://localhost:8080](http://localhost:8080)
+
+### Option 2: Full Python + R Analytics (Recommended)
+
+1. **Clone the repository**
+2. **Set up R environment**:
+   ```bash
+   cd r-analytics
+   setup_r_complete.bat
+   ```
+3. **Start integrated server**:
+   ```bash
+   run_r_server.bat
+   ```
+4. **Run the Java application**:
+   ```bash
+   run-app.bat
+   ```
+5. **Access the application**: Open [http://localhost:8080](http://localhost:8080)
+
+## 📊 Analytics Capabilities
+
+### Python Analytics Engine 🐍
+
+- **Statistical Analysis**
+  - Descriptive statistics (mean, median, std, quartiles)
+  - Distribution analysis and normality testing
+  - Correlation analysis (Pearson, Spearman)
+  - Hypothesis testing (t-tests, chi-square)
+
+- **Machine Learning**
+  - **Classification**: Random Forest, Logistic Regression, SVM, Gradient Boosting
+  - **Regression**: Linear, Ridge, Lasso, Random Forest Regression
+  - **Clustering**: K-Means, Hierarchical, DBSCAN
+  - **Model Evaluation**: Accuracy, Precision, Recall, F1-Score, ROC-AUC
+
+- **Data Quality Assessment**
+  - Missing value analysis and imputation suggestions
+  - Outlier detection using multiple methods (IQR, Z-score)
+  - Data type inference and validation
+  - Duplicate detection and handling
+
+### R Analytics Engine 📈
+
+- **Advanced Statistical Analysis**
+  - Comprehensive descriptive statistics with confidence intervals
+  - Advanced normality tests (Shapiro-Wilk, Anderson-Darling, Jarque-Bera)
+  - Robust statistical measures and trimmed statistics
+  - Distribution fitting and goodness-of-fit tests
+
+- **Advanced Regression Modeling**
+  - Linear, logistic, and polynomial regression
+  - Robust regression methods
+  - Model diagnostics and residual analysis
+  - Variable selection and model comparison
+
+- **Specialized Analyses**
+  - **Survival Analysis**: Kaplan-Meier survival curves, Cox proportional hazards models
+  - **Time Series Analysis**: ARIMA modeling, seasonal decomposition, forecasting
+  - **Advanced Clustering**: Hierarchical clustering, model-based clustering
+  - **Correlation Analysis**: Partial correlations, correlation significance testing
+
+## 📁 Project Structure
+
+```
+data-analysis-app/
+├── src/main/java/           # Java Spring Boot application
+├── src/main/resources/      # Configuration and static files
+├── python-analytics/        # Python analysis engine
+│   ├── data_analyzer.py     # Core Python analysis functionality
+│   ├── python_api_server.py # Flask API server with R integration
+│   ├── report_generator.py  # Report generation functionality
+│   ├── requirements.txt     # Python dependencies
+│   └── setup_python_env.bat # Python environment setup
+├── r-analytics/             # R analysis engine
+│   ├── data_analyzer.R      # Comprehensive R analysis script
+│   ├── setup_r_env.bat      # Basic R package installation
+│   └── setup_r_complete.bat # Full R environment setup
+├── temp_uploads/            # Temporary file storage
+├── visualizations/          # Generated charts and plots
+├── sample-data.csv          # Sample dataset for testing
+├── test_r_integration.py    # R integration testing script
+├── run_r_server.bat         # Start Python+R integrated server
+├── run-app.bat              # Start the Java application
+└── *.md                     # Documentation files
+```
+
+## 🌐 API Endpoints
+
+### Python Analytics API (Port 5000)
+
+**Python-based Analysis:**
+- `POST /api/analyze/upload` - Upload and basic analysis
+- `POST /api/analyze/correlation` - Correlation analysis
+- `POST /api/analyze/machine_learning` - ML analysis (requires target column)
+- `POST /api/analyze/clustering` - Clustering analysis
+- `POST /api/analyze/outliers` - Outlier detection
+- `POST /api/analyze/quality` - Data quality assessment
+- `POST /api/analyze/statistical_tests` - Statistical hypothesis testing
+- `POST /api/analyze/timeseries` - Time series analysis
+- `POST /api/analyze/comprehensive` - Complete Python analysis suite
+- `POST /api/analyze/visualizations` - Generate visualizations
+
+**R-based Analysis:**
+- `POST /api/r/analyze/basic` - R advanced statistics
+- `POST /api/r/analyze/correlation` - R correlation analysis with significance tests
+- `POST /api/r/analyze/tests` - R comprehensive statistical tests
+- `POST /api/r/analyze/regression` - R advanced regression modeling
+- `POST /api/r/analyze/survival` - R survival analysis
+- `POST /api/r/analyze/timeseries` - R time series with ARIMA
+- `POST /api/r/analyze/clustering` - R advanced clustering
+- `POST /api/r/analyze/comprehensive` - Complete R analysis suite
+
+**Combined Analysis:**
+- `POST /api/combined/comprehensive` - Python + R combined analysis
+
+**Report Generation:**
+- `POST /api/reports/generate` - Generate comprehensive markdown report
+- `POST /api/reports/combined` - Generate Python+R combined report
+- `GET /api/reports/list` - List all generated reports
+- `GET /api/reports/download/<id>/<type>` - Download report files
+
+**Utility Endpoints:**
+- `GET /api/r/health` - Check R installation status
+- `GET /api/models/available` - Available models and analysis types
+- `GET /api/sample/generate` - Generate sample data for testing
+- `GET /health` - API health check
+
+### Java Spring Boot API (Port 8080)
+- `GET /` - Web interface homepage
+- `POST /api/analyze` - Main analysis endpoint (forwards to Python/R)
+- `POST /api/upload` - File upload endpoint
+
+## 🛠️ Technology Stack
 
 ### Backend
-- **Java 8** - Programming language
+- **Java 8+** - Core application platform
 - **Spring Boot 2.7.18** - Web framework
 - **Spring Web** - RESTful web services
 - **Thymeleaf** - Template engine
-- **Apache Commons Math** - Statistical calculations
-- **Apache Commons CSV** - CSV file processing
 - **Maven** - Dependency management
+
+### Python Analytics
+- **Python 3.8+** - Programming language
+- **pandas 2.1.4** - Data manipulation
+- **scikit-learn 1.3.2** - Machine learning
+- **matplotlib 3.8.2** - Visualization
+- **Flask 3.0.0** - API server
+- **numpy 1.26.2** - Numerical computing
+- **scipy 1.11.4** - Scientific computing
+
+### R Analytics
+- **R 4.0+** - Statistical computing
+- **dplyr** - Data manipulation
+- **ggplot2** - Visualization
+- **survival** - Survival analysis
+- **forecast** - Time series forecasting
+- **cluster** - Clustering algorithms
+- **lmtest** - Regression testing
 
 ### Frontend
 - **HTML5 & CSS3** - Markup and styling
 - **Bootstrap 5** - Responsive UI framework
 - **JavaScript ES6** - Client-side functionality
 - **Chart.js** - Data visualization
-- **Font Awesome** - Icons
-
-## 📁 Project Structure
-
-```
-data-analysis-app/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/dataanalysis/app/
-│   │   │       ├── DataAnalysisApplication.java    # Main application class
-│   │   │       ├── controller/
-│   │   │       │   └── DataAnalysisController.java # Web controller
-│   │   │       └── service/
-│   │   │           └── DataAnalysisService.java    # Business logic
-│   │   └── resources/
-│   │       ├── application.properties              # Configuration
-│   │       ├── static/
-│   │       │   ├── css/
-│   │       │   │   └── style.css                  # Custom styles
-│   │       │   └── js/
-│   │       │       └── app.js                     # JavaScript functionality
-│   │       └── templates/
-│   │           ├── index.html                     # Home page
-│   │           ├── upload.html                    # Upload page
-│   │           └── results.html                   # Results page
-│   └── test/
-└── pom.xml                                        # Maven configuration
-```
-
-## 🔧 Prerequisites
-
-- **Java 8 or higher** ✅ (You have Java 8 installed)
-- **Maven 3.6+** (for building the project)
-- **Modern web browser** (Chrome, Firefox, Safari, Edge)
-
-## ⚡ Quick Start
-
-### Option 1: Using Maven (Recommended)
-
-1. **Install Maven** (if not already installed):
-   - Download from [Maven Official Site](https://maven.apache.org/download.cgi)
-   - Add Maven to your system PATH
-
-2. **Build and run the application**:
-   ```bash
-   cd data-analysis-app
-   mvn clean compile
-   mvn spring-boot:run
-   ```
-
-3. **Access the application**:
-   - Open your browser and navigate to: `http://localhost:8080`
-
-### Option 2: Using IDE (IntelliJ IDEA / Eclipse)
-
-1. **Import the project**:
-   - Open your IDE
-   - Import as Maven project
-   - Point to the `data-analysis-app` folder
-
-2. **Run the application**:
-   - Navigate to `DataAnalysisApplication.java`
-   - Right-click and select "Run"
-
-3. **Access the application**:
-   - Open your browser and navigate to: `http://localhost:8080`
 
 ## 📊 How to Use
 
-### 1. Home Page
-- Welcome screen with feature overview
-- Navigation to upload or sample data sections
-
-### 2. Upload Data
-- Click "Upload Data" in the navigation
+### 1. Upload Data
 - Select a CSV file from your computer
-- Drag and drop support available
-- File format requirements:
+- File requirements:
   - CSV format (.csv)
   - First row should contain column headers
-  - Numeric columns for statistical analysis
+  - Supported data types: numeric, string, date
 
-### 3. View Results
-- Statistical summary for numeric columns
-- Interactive histograms and charts
-- Data preview table
-- Export and download options
+### 2. Choose Analysis Type
+- **Python Analysis**: For machine learning and basic statistics
+- **R Analysis**: For advanced statistical methods
+- **Combined Analysis**: For comprehensive analysis using both engines
 
-### 4. Sample Data
-- Test the application with built-in sample data
-- Employee dataset with sales and demographic information
+### 3. Configure Analysis Parameters
+- Select target variable for predictive modeling
+- Choose number of clusters for clustering analysis
+- Specify date and value columns for time series analysis
 
-## 🎯 API Endpoints
+### 4. View Results
+- Interactive visualizations
+- Statistical summaries
+- Model performance metrics
+- Data quality assessments
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Home page |
-| GET | `/upload` | Upload page |
-| POST | `/upload` | Process uploaded file |
-| GET | `/sample-data` | Generate sample analysis |
-| GET | `/api/analysis/{type}` | Get analysis by type (JSON) |
+### 5. Generate Reports
+- Download comprehensive markdown reports
+- Export visualizations and tables
+- Access raw JSON data for further processing
+
+## 🧪 Testing and Validation
+
+### R Integration Testing
+```bash
+# Test R integration components
+python test_r_integration.py
+```
+
+### Python Analytics Testing
+```bash
+cd python-analytics
+call venv\Scripts\activate.bat
+python -c "from data_analyzer import DataAnalyzer; print('Python analytics ready!')"
+```
+
+### R Analytics Testing
+```bash
+# Test R script directly
+cd r-analytics
+Rscript data_analyzer.R sample-data.csv basic
+```
 
 ## 🔍 Features in Detail
 
 ### Statistical Analysis
 - **Descriptive Statistics**: Count, Mean, Median, Min, Max
-- **Variability Measures**: Standard deviation, Variance
-- **Data Quality**: Missing value detection
-- **Distribution Analysis**: Histograms and frequency distributions
+- **Variability Measures**: Standard deviation, Variance, IQR
+- **Distribution Analysis**: Skewness, Kurtosis, Normality tests
+- **Correlation Analysis**: Pearson, Spearman, Kendall correlations
 
-### Data Visualization
-- **Interactive Charts**: Built with Chart.js
-- **Histogram Generation**: Automatic binning for numeric data
-- **Responsive Design**: Charts adapt to screen size
-- **Color Coding**: Consistent color scheme throughout
+### Machine Learning
+- **Supervised Learning**: Classification and regression models
+- **Unsupervised Learning**: Clustering and dimensionality reduction
+- **Model Evaluation**: Cross-validation, confusion matrices, ROC curves
+- **Feature Importance**: Variable significance analysis
 
-### File Processing
-- **CSV Parser**: Robust CSV file handling
-- **Large File Support**: Up to 10MB file size
-- **Error Handling**: Comprehensive error messages
-- **Data Validation**: Input validation and sanitization
+### Data Quality Assessment
+- **Missing Data Analysis**: Detection and visualization of missing values
+- **Outlier Detection**: Multiple methods (IQR, Z-score, modified Z-score)
+- **Data Validation**: Type checking, range validation, consistency checks
+- **Recommendation Engine**: Automated data cleaning suggestions
 
-## 🎨 Customization
+### Time Series Analysis
+- **Trend Analysis**: Linear trend detection and significance testing
+- **Seasonality Detection**: Seasonal pattern identification
+- **Decomposition**: Trend, seasonal, and residual components
+- **Forecasting**: ARIMA models and predictions
 
-### Styling
-- Modify `src/main/resources/static/css/style.css` for custom styles
-- Bootstrap 5 classes available throughout
-- CSS custom properties for consistent theming
+### Specialized Analyses
+- **Survival Analysis**: Time-to-event modeling and hazard estimation
+- **Clustering**: Segment discovery and cluster validation
+- **Statistical Tests**: Hypothesis testing for various data scenarios
+- **Advanced Regression**: Multiple model types with diagnostics
 
-### Configuration
-- Update `src/main/resources/application.properties` for:
-  - Server port configuration
-  - File upload limits
-  - Logging levels
-  - Cache settings
+## 🔧 Configuration
 
-### Adding New Analysis Types
-1. Extend `DataAnalysisService.java`
-2. Add new methods for specific analysis
-3. Update the controller endpoints
-4. Create corresponding frontend components
+### Environment Variables
+- `JAVA_HOME` - Path to Java installation
+- `PYTHON_PATH` - Path to Python executable
+- `R_HOME` - Path to R installation
 
-## 🚀 Future Enhancements (Mobile & Desktop Apps)
+### Application Properties
+- `server.port` - Java application port (default: 8080)
+- `python.api.url` - Python API URL (default: http://localhost:5000)
+- `file.upload.max-size` - Maximum upload file size (default: 10MB)
 
-### Phase 2: Mobile App
-- **Technology**: React Native or Flutter
-- **API Integration**: RESTful services from Spring Boot backend
-- **Features**: 
-  - Camera integration for document scanning
-  - Offline analysis capabilities
-  - Push notifications for analysis completion
+### Python Server Configuration
+- Edit `python-analytics/python_api_server.py` to modify:
+  - API port (default: 5000)
+  - Upload directory
+  - Visualization settings
 
-### Phase 3: Desktop App
-- **Technology**: JavaFX or Electron
-- **Features**:
-  - Advanced data manipulation tools
-  - Local file system integration
-  - Export to multiple formats (PDF, Excel, etc.)
-  - Batch processing capabilities
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Port 8080 already in use**:
-   ```bash
-   # Change port in application.properties
-   server.port=8081
-   ```
-
-2. **File upload fails**:
-   - Check file size (max 10MB)
-   - Ensure CSV format
-   - Verify first row contains headers
-
-3. **Maven build errors**:
-   - Verify Java version: `java -version`
-   - Update Maven: `mvn -version`
-   - Clear Maven cache: `mvn clean`
-
-4. **Browser compatibility**:
-   - Use modern browsers (Chrome 80+, Firefox 75+, Safari 13+)
-   - Enable JavaScript
-   - Clear browser cache
-
-## 📈 Performance Tips
-
-- **File Size**: Keep CSV files under 10MB for optimal performance
-- **Data Quality**: Clean data provides better analysis results
-- **Browser**: Use Chrome or Firefox for best Chart.js performance
-- **Memory**: Ensure sufficient RAM for large datasets
+### R Integration Configuration
+- Edit `r-analytics/data_analyzer.R` to modify:
+  - R packages to use
+  - Statistical method parameters
+  - Output formatting
 
 ## 🤝 Contributing
 
-This is a foundation project ready for expansion. Areas for contribution:
+Contributions are welcome! Areas for contribution:
+
 - Additional statistical methods
-- More chart types
-- Database integration
-- User authentication
-- Data export features
+- Enhanced visualizations
+- Performance optimizations
+- Additional file format support
+- Advanced ML algorithms
+- Improved UI/UX features
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 📄 License
 
-This project is created for educational and development purposes. Feel free to modify and extend as needed.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## 🙏 Acknowledgments
 
-If you encounter any issues:
-1. Check the troubleshooting section above
-2. Verify all prerequisites are installed
-3. Check application logs for detailed error messages
-4. Ensure CSV files follow the specified format
+- Spring Boot for the robust backend framework
+- Python ecosystem (pandas, scikit-learn, matplotlib) for ML and analytics
+- R ecosystem (tidyverse, survival, forecast) for advanced statistics
+- Flask for seamless Python-Java integration
+- Bootstrap for the responsive web interface
 
 ---
 
-**Built with ❤️ using Java Spring Boot**
+**Built with ❤️ combining the power of Java, Python, and R for comprehensive data analysis**
 
-Ready to analyze your data! 🎉
+🔬 Ready for enterprise-level analytics! 🎉
