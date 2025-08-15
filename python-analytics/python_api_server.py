@@ -258,6 +258,9 @@ def comprehensive_analysis():
             'file_info': load_result,
             'basic_statistics': analyzer.basic_statistics(),
             'correlation_analysis': analyzer.correlation_analysis(),
+            'outlier_detection': analyzer.outlier_detection(),
+            'data_quality': analyzer.data_quality_assessment(),
+            'statistical_tests': analyzer.statistical_tests(),
             'clustering_analysis': analyzer.clustering_analysis(n_clusters)
         }
         
@@ -322,9 +325,161 @@ def get_available_models():
             'correlation_analysis',
             'machine_learning',
             'clustering_analysis',
+            'outlier_detection',
+            'data_quality',
+            'statistical_tests',
+            'time_series',
+            'visualizations',
             'comprehensive'
         ]
     })
+
+@app.route('/api/analyze/outliers', methods=['POST'])
+def outlier_detection():
+    """Perform comprehensive outlier detection"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        
+        # Save uploaded file temporarily
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        # Load data and perform outlier detection
+        load_result = analyzer.load_data(file_path)
+        if not load_result['success']:
+            os.remove(file_path)
+            return jsonify(load_result), 400
+        
+        outlier_result = analyzer.outlier_detection()
+        
+        # Clean up file
+        os.remove(file_path)
+        
+        return jsonify({
+            'analysis_type': 'outlier_detection',
+            'result': outlier_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in outlier detection: {str(e)}")
+        return jsonify({'error': f'Outlier detection failed: {str(e)}'}), 500
+
+@app.route('/api/analyze/quality', methods=['POST'])
+def data_quality_assessment():
+    """Perform comprehensive data quality assessment"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        
+        # Save uploaded file temporarily
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        # Load data and perform quality assessment
+        load_result = analyzer.load_data(file_path)
+        if not load_result['success']:
+            os.remove(file_path)
+            return jsonify(load_result), 400
+        
+        quality_result = analyzer.data_quality_assessment()
+        
+        # Clean up file
+        os.remove(file_path)
+        
+        return jsonify({
+            'analysis_type': 'data_quality',
+            'result': quality_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in data quality assessment: {str(e)}")
+        return jsonify({'error': f'Data quality assessment failed: {str(e)}'}), 500
+
+@app.route('/api/analyze/statistical_tests', methods=['POST'])
+def statistical_tests():
+    """Perform statistical tests"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        
+        # Save uploaded file temporarily
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        # Load data and perform statistical tests
+        load_result = analyzer.load_data(file_path)
+        if not load_result['success']:
+            os.remove(file_path)
+            return jsonify(load_result), 400
+        
+        tests_result = analyzer.statistical_tests()
+        
+        # Clean up file
+        os.remove(file_path)
+        
+        return jsonify({
+            'analysis_type': 'statistical_tests',
+            'result': tests_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in statistical tests: {str(e)}")
+        return jsonify({'error': f'Statistical tests failed: {str(e)}'}), 500
+
+@app.route('/api/analyze/timeseries', methods=['POST'])
+def time_series_analysis():
+    """Perform time series analysis"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        date_column = request.form.get('date_column')
+        value_column = request.form.get('value_column')
+        
+        if not date_column or not value_column:
+            return jsonify({'error': 'Date and value columns are required for time series analysis'}), 400
+        
+        # Save uploaded file temporarily
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        
+        # Load data and perform time series analysis
+        load_result = analyzer.load_data(file_path)
+        if not load_result['success']:
+            os.remove(file_path)
+            return jsonify(load_result), 400
+        
+        ts_result = analyzer.time_series_analysis(date_column, value_column)
+        
+        # Clean up file
+        os.remove(file_path)
+        
+        return jsonify({
+            'analysis_type': 'time_series',
+            'date_column': date_column,
+            'value_column': value_column,
+            'result': ts_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in time series analysis: {str(e)}")
+        return jsonify({'error': f'Time series analysis failed: {str(e)}'}), 500
 
 @app.route('/api/sample/generate', methods=['GET'])
 def generate_sample_data():
@@ -378,14 +533,20 @@ def internal_error(e):
     return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == '__main__':
-    print("🐍 Starting Python Data Analysis API Server...")
+    print("🐍 Starting Enhanced Python Data Analysis API Server...")
     print("📊 Available endpoints:")
-    print("   POST /api/analyze/upload - Upload and analyze CSV")
+    print("   POST /api/analyze/upload - Upload and basic analysis")
     print("   POST /api/analyze/correlation - Correlation analysis")
     print("   POST /api/analyze/machine_learning - ML analysis")
     print("   POST /api/analyze/clustering - Clustering analysis")
+    print("   POST /api/analyze/outliers - Outlier detection")
+    print("   POST /api/analyze/quality - Data quality assessment")
+    print("   POST /api/analyze/statistical_tests - Statistical tests")
+    print("   POST /api/analyze/timeseries - Time series analysis")
+    print("   POST /api/analyze/visualizations - Generate visualizations")
     print("   POST /api/analyze/comprehensive - Complete analysis")
     print("   GET  /api/models/available - Available models")
+    print("   GET  /api/sample/generate - Generate sample data")
     print("   GET  /health - Health check")
     print()
     print("🚀 Server starting on http://localhost:5000")
